@@ -60,6 +60,7 @@ export type CircleSummaryFilter = {
   bookId?: string;
   /** この User が参加している Circle だけに絞る */
   memberUserId?: string;
+  ids?: string[];
   cursor?: Cursor;
   limit: number;
 };
@@ -72,6 +73,7 @@ export async function listCircleSummaries(filter: CircleSummaryFilter, executor:
     .from(circles)
     .where(
       and(
+        filter.ids ? inArray(circles.id, filter.ids) : undefined,
         filter.visibility ? eq(circles.visibility, filter.visibility) : undefined,
         pattern ? or(ilike(circles.name, pattern), ilike(circles.description, pattern)) : undefined,
         filter.targetType ? eq(circles.targetType, filter.targetType) : undefined,
@@ -298,4 +300,43 @@ export async function claimSchedulesDueForReminder(
       ),
     )
     .returning();
+}
+
+// ---------------------------------------------------------------------------
+// Dashboard 用のまとめ取得
+// ---------------------------------------------------------------------------
+
+/** 複数 Circle のメンバーをまとめて取得する。OWNER が先頭、以降は参加順 */
+export async function listMembersByCircleIds(circleIds: string[], executor: DbExecutor = db) {
+  if (circleIds.length === 0) return [];
+  return executor
+    .select({
+      circleId: circleMembers.circleId,
+      role: circleMembers.role,
+      joinedAt: circleMembers.joinedAt,
+      user: {
+        id: users.id,
+        name: users.name,
+        username: users.username,
+        avatarUrl: users.avatarUrl,
+      },
+    })
+    .from(circleMembers)
+    .innerJoin(users, eq(users.id, circleMembers.userId))
+    .where(inArray(circleMembers.circleId, circleIds))
+    .orderBy(asc(circleMembers.circleId), asc(circleMembers.role), asc(circleMembers.joinedAt));
+}
+
+/** 複数 Circle の「これから開催される Schedule」を開催日時の昇順で返す */
+export async function listUpcomingSchedulesByCircleIds(
+  circleIds: string[],
+  now: Date,
+  executor: DbExecutor = db,
+): Promise<CircleScheduleRow[]> {
+  if (circleIds.length === 0) return [];
+  return executor
+    .select()
+    .from(circleSchedules)
+    .where(and(inArray(circleSchedules.circleId, circleIds), gt(circleSchedules.scheduledAt, now)))
+    .orderBy(asc(circleSchedules.scheduledAt));
 }

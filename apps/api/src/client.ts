@@ -34,6 +34,7 @@ export type { ErrorCode, ErrorResponseBody } from "./lib/errors";
 export type { Page } from "./lib/pagination";
 export type * from "./dto/book.dto";
 export type * from "./dto/circle.dto";
+export type * from "./dto/dashboard.dto";
 export type * from "./dto/my-roadmap.dto";
 export type * from "./dto/notification.dto";
 export type * from "./dto/profile.dto";

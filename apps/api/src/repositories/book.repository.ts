@@ -1,4 +1,4 @@
-import { and, desc, eq, ilike, or } from "drizzle-orm";
+import { and, desc, eq, ilike, inArray, or } from "drizzle-orm";
 import { db, type DbExecutor } from "../db/client";
 import { books } from "../db/schema";
 import { escapeLike } from "../lib/db-errors";
@@ -44,4 +44,9 @@ export async function insertBook(values: NewBookRow, executor: DbExecutor = db):
   const [row] = await executor.insert(books).values(values).returning();
   if (!row) throw new Error("insertBook returned no row");
   return row;
+}
+
+export async function findBooksByIds(ids: string[], executor: DbExecutor = db): Promise<BookRow[]> {
+  if (ids.length === 0) return [];
+  return executor.select().from(books).where(inArray(books.id, ids));
 }

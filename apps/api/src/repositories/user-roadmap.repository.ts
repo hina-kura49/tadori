@@ -200,3 +200,41 @@ export async function countCompletedRoadmaps(userId: string, executor: DbExecuto
     and(eq(userRoadmaps.userId, userId), eq(userRoadmaps.status, "COMPLETED")),
   );
 }
+
+// ---------------------------------------------------------------------------
+// Circle のメンバー進捗用
+// ---------------------------------------------------------------------------
+
+/** 指定した User たちの UserRoadmap (roadmapIds に含まれるものだけ) */
+export async function listUserRoadmapsOfUsers(
+  userIds: string[],
+  roadmapIds: string[],
+  executor: DbExecutor = db,
+): Promise<UserRoadmapRow[]> {
+  if (userIds.length === 0 || roadmapIds.length === 0) return [];
+  return executor
+    .select()
+    .from(userRoadmaps)
+    .where(and(inArray(userRoadmaps.userId, userIds), inArray(userRoadmaps.roadmapId, roadmapIds)));
+}
+
+/** 指定した User たちが、指定した Book の Step に付けた進捗 (どの Roadmap 経由かは問わない) */
+export async function listBookProgressOfUsers(
+  userIds: string[],
+  bookIds: string[],
+  executor: DbExecutor = db,
+) {
+  if (userIds.length === 0 || bookIds.length === 0) return [];
+  return executor
+    .select({
+      userId: userRoadmaps.userId,
+      bookId: roadmapSteps.bookId,
+      status: userRoadmapStepProgress.status,
+      progressType: userRoadmapStepProgress.progressType,
+      progressValue: userRoadmapStepProgress.progressValue,
+    })
+    .from(userRoadmapStepProgress)
+    .innerJoin(userRoadmaps, eq(userRoadmaps.id, userRoadmapStepProgress.userRoadmapId))
+    .innerJoin(roadmapSteps, eq(roadmapSteps.id, userRoadmapStepProgress.roadmapStepId))
+    .where(and(inArray(userRoadmaps.userId, userIds), inArray(roadmapSteps.bookId, bookIds)));
+}

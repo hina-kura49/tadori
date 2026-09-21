@@ -21,6 +21,8 @@ export type RoadmapSummaryDto = {
   estimatedDays: number | null;
   visibility: RoadmapVisibility;
   stepCount: number;
+  /** この Roadmap を完走した User 数 */
+  completedUserCount: number;
   creator: UserSummaryDto;
   createdAt: string;
   updatedAt: string;
@@ -71,6 +73,7 @@ export function toRoadmapSummaryDto(row: RoadmapSummaryRow): RoadmapSummaryDto {
     estimatedDays: row.estimatedDays,
     visibility: row.visibility,
     stepCount: row.stepCount,
+    completedUserCount: row.completedUserCount,
     creator: toUserSummaryDto(row.creator),
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),

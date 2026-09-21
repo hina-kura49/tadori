@@ -72,7 +72,22 @@ function toMyRoadmapStepDto(step: StepWithProgressRow): MyRoadmapStepDto {
   };
 }
 
-function toStepProgressDto(step: StepWithProgressRow): StepProgressDto {
+/**
+ * Step の進捗を 0〜100 に直す。COMPLETED は 100、PERCENTAGE はその値、
+ * PAGE / CHAPTER は総量が分からないので 0 として扱う。
+ */
+export function stepPercentage(step: {
+  status: StepWithProgressRow["status"] | null;
+  progressType: StepWithProgressRow["progressType"] | null;
+  progressValue: string | null;
+}): number {
+  if (step.status === "COMPLETED") return 100;
+  if (step.progressType !== "PERCENTAGE" || step.progressValue === null) return 0;
+  const value = Number(step.progressValue);
+  return Number.isFinite(value) ? Math.min(100, Math.max(0, value)) : 0;
+}
+
+export function toStepProgressDto(step: StepWithProgressRow): StepProgressDto {
   return {
     stepId: step.stepId,
     status: step.status,

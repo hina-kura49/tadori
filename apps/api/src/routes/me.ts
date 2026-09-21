@@ -15,6 +15,7 @@ import {
   userRoadmapStepParamSchema,
 } from "../schemas/progress.schema";
 import * as circleService from "../services/circle.service";
+import * as dashboardService from "../services/dashboard.service";
 import * as deviceService from "../services/device.service";
 import * as notificationPreferenceService from "../services/notification-preference.service";
 import * as progressService from "../services/progress.service";
@@ -31,6 +32,10 @@ export const meRoutes = new Hono()
   .patch("/", validate("json", updateMeSchema), async (c) => {
     const user = await userService.updateCurrentUser(c.get("user"), c.req.valid("json"));
     return c.json(user, 200);
+  })
+  .get("/dashboard", async (c) => {
+    const dashboard = await dashboardService.getDashboard(c.get("user"));
+    return c.json(dashboard, 200);
   })
   .delete("/", async (c) => {
     await userService.deleteCurrentUser(c.get("user"));

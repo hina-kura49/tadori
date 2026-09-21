@@ -61,6 +61,12 @@ const roadmapSummarySelection = {
     select count(*)::int from "roadmap_steps"
     where "roadmap_steps"."roadmap_id" = "roadmaps"."id"
   )`,
+  // この Roadmap を完走した User 数 (派生値。保存しない)
+  completedUserCount: sql<number>`(
+    select count(*)::int from "user_roadmaps"
+    where "user_roadmaps"."roadmap_id" = "roadmaps"."id"
+      and "user_roadmaps"."status" = 'COMPLETED'
+  )`,
   creator: {
     id: users.id,
     name: users.name,
@@ -158,6 +164,12 @@ export async function deleteRoadmap(id: string, executor: DbExecutor = db): Prom
 
 /** position 昇順。Book の要約を含む */
 export async function listSteps(roadmapId: string, executor: DbExecutor = db) {
+  return listStepsByRoadmapIds([roadmapId], executor);
+}
+
+/** 複数 Roadmap の Step をまとめて取得する (roadmapId, position 昇順) */
+export async function listStepsByRoadmapIds(roadmapIds: string[], executor: DbExecutor = db) {
+  if (roadmapIds.length === 0) return [];
   return executor
     .select({
       id: roadmapSteps.id,
@@ -175,8 +187,8 @@ export async function listSteps(roadmapId: string, executor: DbExecutor = db) {
     })
     .from(roadmapSteps)
     .innerJoin(books, eq(books.id, roadmapSteps.bookId))
-    .where(eq(roadmapSteps.roadmapId, roadmapId))
-    .orderBy(asc(roadmapSteps.position));
+    .where(inArray(roadmapSteps.roadmapId, roadmapIds))
+    .orderBy(asc(roadmapSteps.roadmapId), asc(roadmapSteps.position));
 }
 
 export type RoadmapStepRow = Awaited<ReturnType<typeof listSteps>>[number];
