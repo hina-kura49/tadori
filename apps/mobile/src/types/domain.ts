@@ -52,6 +52,7 @@ export interface Enrollment {
   startedAt: string;
 }
 export interface Profile {
+  avatarUri?: string;
   name: string;
   username: string;
   bio: string;

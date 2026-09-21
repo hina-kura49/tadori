@@ -1,3 +1,4 @@
+import { AppHeader } from "@/components/AppHeader";
 import { FirstPath } from "@/components/FirstPath";
 import { PathRail, PathNode } from "@/components/Path";
 import { View, Pressable } from "react-native";
@@ -63,33 +64,30 @@ export default function Today() {
   const hour = new Date().getHours();
   return (
     <Screen gap={14} refreshing={q.isRefetching} onRefresh={() => q.refetch()}>
-      <Row style={{ justifyContent: "space-between" }}>
-        <Row style={{ gap: 8 }}>
-          <Route color={c.accent} size={23} />
-          <Txt serif style={{ fontSize: 30, letterSpacing: -1 }}>
-            tadori
-          </Txt>
-        </Row>
-        <Row style={{ gap: 5 }}>
-          <IconButton
-            label="通知設定"
-            onPress={() => router.push("/settings/notifications")}
-          >
-            <Bell size={20} color={c.ink} />
-          </IconButton>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="プロフィール"
-            onPress={() => router.push("/me")}
-          >
-            <Avatar name={d.profile.name || "T"} size={34} />
-          </Pressable>
-        </Row>
-      </Row>
+      <AppHeader
+        title="Today"
+        action={
+          <Row style={{ gap: 5 }}>
+            <IconButton
+              label="通知設定"
+              onPress={() => router.push("/settings/notifications")}
+            >
+              <Bell size={20} color={c.accent} />
+            </IconButton>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="プロフィール"
+              onPress={() => router.push("/me")}
+            >
+              <Avatar name={d.profile.name || "T"} size={34} />
+            </Pressable>
+          </Row>
+        }
+      />
       <View style={{ gap: 6 }}>
         <Txt
           serif
-          style={{ fontSize: 30, lineHeight: 36, letterSpacing: -0.7 }}
+          style={{ fontSize: 24, lineHeight: 32, letterSpacing: -0.4 }}
         >
           {hour < 12
             ? "Good morning."
@@ -97,7 +95,7 @@ export default function Today() {
               ? "A little further, today."
               : "Good evening."}
         </Txt>
-        <Txt muted style={{ fontSize: 12 }}>
+        <Txt muted style={{ fontSize: 13, lineHeight: 21 }}>
           今日の一歩が、明日のあなたにつながる。
         </Txt>
       </View>
@@ -105,7 +103,7 @@ export default function Today() {
         <>
           <View style={{ gap: 8 }}>
             <Row style={{ justifyContent: "space-between" }}>
-              <Txt muted style={{ fontSize: 12 }}>
+              <Txt muted style={{ fontSize: 10 }}>
                 Your path
               </Txt>
               <Pressable
@@ -169,29 +167,31 @@ export default function Today() {
                   <Txt muted style={{ fontSize: 11 }}>
                     {book.author}
                   </Txt>
-                  <View style={{ gap: 7, paddingTop: 3 }}>
-                    <Row style={{ justifyContent: "space-between" }}>
-                      <Txt muted style={{ fontSize: 10 }}>
-                        {percentage === 0 ? "READY TO BEGIN" : "READING"}
+                  {percentage > 0 && (
+                    <View style={{ gap: 6 }}>
+                      <Txt muted style={{ fontSize: 11 }}>
+                        {percentage}%
                       </Txt>
-                      <Txt
-                        style={{
-                          fontSize: 20,
-                          color: c.accent,
-                          fontWeight: "500",
-                        }}
-                      >
-                        {percentage}
-                        <Txt muted style={{ fontSize: 11 }}>
-                          {" "}
-                          %
-                        </Txt>
-                      </Txt>
-                    </Row>
-                    <Progress value={percentage} />
-                  </View>
+                      <Progress thin value={percentage} />
+                    </View>
+                  )}
                 </View>
               </Row>
+              <View
+                style={{
+                  borderLeftWidth: 2,
+                  borderColor: "#9CAF9F",
+                  paddingLeft: 13,
+                  gap: 4,
+                }}
+              >
+                <Txt muted style={{ fontSize: 11 }}>
+                  Checkpoint
+                </Txt>
+                <Txt style={{ fontSize: 12, lineHeight: 21 }}>
+                  {s.current.checkpoint}
+                </Txt>
+              </View>
               <Button
                 title={percentage === 0 ? "Start Reading" : "Continue"}
                 onPress={() =>
@@ -205,19 +205,6 @@ export default function Today() {
                   })
                 }
               />
-              <View
-                style={{
-                  borderLeftWidth: 2,
-                  borderColor: "#9CAF9F",
-                  paddingLeft: 13,
-                  gap: 4,
-                }}
-              >
-                <Label>CHECKPOINT</Label>
-                <Txt style={{ fontSize: 12, lineHeight: 21 }}>
-                  {s.current.checkpoint}
-                </Txt>
-              </View>
             </View>
           </Card>
           {next && (

@@ -1,3 +1,4 @@
+import { LearningProgressStep } from "./LearningProgressStep";
 import { View } from "react-native";
 import { Database } from "@/types/domain";
 import { Row, Txt } from "./ui";
@@ -6,9 +7,11 @@ import { colors as c } from "@/lib/theme";
 export function LearningTerrain({
   data,
   maxAreas,
+  animate = false,
 }: {
   data: Database;
   maxAreas?: number;
+  animate?: boolean;
 }) {
   const areas = [
     ...new Set([
@@ -41,14 +44,16 @@ export function LearningTerrain({
           <PathNode state="current" size={22} />
           <Txt style={{ fontSize: 11, color: c.accent }}>学びの出発点</Txt>
         </Row>
-        {areas.slice(0, maxAreas).map((area, index) => {
+        {areas.slice(0, maxAreas).map((area) => {
           const steps = data.enrollments.flatMap((e) => {
             const r = data.roadmaps.find(
               (r) => r.id === e.roadmapId && r.category === area,
             );
             return (
-              r?.steps.map((s) => ({ id: s.id, progress: e.progress[s.id] })) ??
-              []
+              r?.steps.map((s) => ({
+                id: `${r.id}:${s.id}`,
+                progress: e.progress[s.id],
+              })) ?? []
             );
           });
           const completed = steps.filter(
@@ -93,37 +98,12 @@ export function LearningTerrain({
                       progress: undefined,
                     }))
                 ).map((step, i) => (
-                  <View
-                    key={step.id + i}
-                    style={{
-                      flex: 1,
-                      flexDirection: "row",
-                      alignItems: "center",
-                    }}
-                  >
-                    <PathNode
-                      size={20}
-                      state={
-                        step.progress?.status === "COMPLETED"
-                          ? "done"
-                          : step.progress?.status === "READING"
-                            ? "current"
-                            : "next"
-                      }
-                    />
-                    {i < (shown.length || 3) - 1 && (
-                      <View
-                        style={{
-                          flex: 1,
-                          height: 1,
-                          backgroundColor:
-                            step.progress?.status === "COMPLETED"
-                              ? "#789782"
-                              : "#C7D4C7",
-                        }}
-                      />
-                    )}
-                  </View>
+                  <LearningProgressStep
+                    key={step.id}
+                    progress={step.progress}
+                    animate={animate}
+                    connected={i < (shown.length || 3) - 1}
+                  />
                 ))}
                 {steps.length > 5 && (
                   <Txt muted style={{ fontSize: 10 }}>

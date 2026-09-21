@@ -4,10 +4,18 @@ import * as FileSystem from "expo-file-system/legacy";
 import { apiUrl } from "@/api/client";
 import { session } from "./storage";
 export async function selectBookImage(): Promise<string | undefined> {
+  return selectImage([2, 3]);
+}
+export async function selectProfileImage(): Promise<string | undefined> {
+  return selectImage([1, 1]);
+}
+async function selectImage(
+  aspect: [number, number],
+): Promise<string | undefined> {
   const result = await ImagePicker.launchImageLibraryAsync({
     mediaTypes: ["images"],
     allowsEditing: true,
-    aspect: [2, 3],
+    aspect,
     quality: 0.7,
     base64: Platform.OS === "web",
   });
@@ -27,6 +35,16 @@ export async function selectBookImage(): Promise<string | undefined> {
   return asset.uri;
 }
 export async function persistBookImage(uri: string): Promise<string> {
+  return persistImage(uri, "book-cover", "book-covers");
+}
+export async function persistProfileImage(uri: string): Promise<string> {
+  return persistImage(uri, "profile-avatar", "profile-avatars");
+}
+async function persistImage(
+  uri: string,
+  endpoint: string,
+  directory: string,
+): Promise<string> {
   if (apiUrl) {
     const form = new FormData();
     if (Platform.OS === "web")
@@ -41,7 +59,7 @@ export async function persistBookImage(uri: string): Promise<string> {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 20000);
     try {
-      const response = await fetch(`${apiUrl}/v1/uploads/book-cover`, {
+      const response = await fetch(`${apiUrl}/v1/uploads/${endpoint}`, {
         method: "POST",
         body: form,
         credentials: "include",
@@ -58,7 +76,7 @@ export async function persistBookImage(uri: string): Promise<string> {
     }
   }
   if (Platform.OS === "web") return uri;
-  const folder = `${FileSystem.documentDirectory}book-covers/`;
+  const folder = `${FileSystem.documentDirectory}${directory}/`;
   await FileSystem.makeDirectoryAsync(folder, { intermediates: true });
   const target = `${folder}${Date.now()}.jpg`;
   await FileSystem.copyAsync({ from: uri, to: target });

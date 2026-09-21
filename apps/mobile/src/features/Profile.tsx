@@ -1,3 +1,5 @@
+import { AppHeader } from "@/components/AppHeader";
+import { ProfileAvatarEditor } from "@/components/ProfileAvatarEditor";
 import { LearningTerrain } from "@/components/LearningTerrain";
 import { Pressable, View } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
@@ -85,17 +87,17 @@ export default function Profile() {
       refreshing={q.isRefetching}
       onRefresh={() => q.refetch()}
     >
-      <Row style={{ justifyContent: "space-between" }}>
-        <Txt muted style={{ fontSize: 13, lineHeight: 20, fontWeight: "500" }}>
-          Learning profile
-        </Txt>
-        <IconButton label="設定" onPress={() => router.push("/settings")}>
-          <Settings2 size={21} color={c.ink} />
-        </IconButton>
-      </Row>
+      <AppHeader
+        title="Me"
+        action={
+          <IconButton label="設定" onPress={() => router.push("/settings")}>
+            <Settings2 size={21} color={c.accent} />
+          </IconButton>
+        }
+      />
       <View style={{ gap: 16 }}>
         <Row style={{ gap: 14 }}>
-          <Avatar name={p.name || "T"} size={54} />
+          <ProfileAvatarEditor profile={p} />
           <View style={{ flex: 1, gap: 3 }}>
             <Txt style={{ fontSize: 23, lineHeight: 31, fontWeight: "500" }}>
               {p.name || "Your name"}
@@ -115,33 +117,51 @@ export default function Profile() {
           {p.bio}
         </Txt>
       </View>
-      <LearningTerrain data={d} />
-      <Row
-        style={{
-          borderTopWidth: 1,
-          borderBottomWidth: 1,
-          borderColor: c.line,
-          paddingVertical: 15,
-        }}
-      >
-        <View style={{ flex: 1, gap: 5, alignItems: "center" }}>
-          <Txt serif style={{ fontSize: 24, lineHeight: 32 }}>
-            {booksDone}
+      <LearningTerrain data={d} animate />
+      {!booksDone && !completed.length ? (
+        <View
+          style={{
+            borderTopWidth: 1,
+            borderColor: c.line,
+            paddingTop: 20,
+            gap: 6,
+          }}
+        >
+          <Txt serif style={{ fontSize: 21, lineHeight: 29 }}>
+            Your journey has just started.
           </Txt>
-          <Txt muted style={{ fontSize: 11, lineHeight: 18 }}>
-            Books completed
-          </Txt>
-        </View>
-        <View style={{ width: 1, height: 32, backgroundColor: c.line }} />
-        <View style={{ flex: 1, gap: 5, alignItems: "center" }}>
-          <Txt serif style={{ fontSize: 24, lineHeight: 32 }}>
-            {completed.length}
-          </Txt>
-          <Txt muted style={{ fontSize: 11, lineHeight: 18 }}>
-            Roadmaps completed
+          <Txt muted style={{ fontSize: 12 }}>
+            最初の到達点まで、あなたのペースで。
           </Txt>
         </View>
-      </Row>
+      ) : (
+        <Row
+          style={{
+            borderTopWidth: 1,
+            borderBottomWidth: 1,
+            borderColor: c.line,
+            paddingVertical: 15,
+          }}
+        >
+          <View style={{ flex: 1, gap: 5, alignItems: "center" }}>
+            <Txt serif style={{ fontSize: 24, lineHeight: 32 }}>
+              {booksDone}
+            </Txt>
+            <Txt muted style={{ fontSize: 11, lineHeight: 18 }}>
+              Books completed
+            </Txt>
+          </View>
+          <View style={{ width: 1, height: 32, backgroundColor: c.line }} />
+          <View style={{ flex: 1, gap: 5, alignItems: "center" }}>
+            <Txt serif style={{ fontSize: 24, lineHeight: 32 }}>
+              {completed.length}
+            </Txt>
+            <Txt muted style={{ fontSize: 11, lineHeight: 18 }}>
+              Roadmaps completed
+            </Txt>
+          </View>
+        </Row>
+      )}
       {[
         { title: "Current roadmaps", items: active },
         { title: "Completed roadmaps", items: completed },

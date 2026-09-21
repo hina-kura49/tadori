@@ -1,3 +1,4 @@
+import { AppHeader } from "@/components/AppHeader";
 import { useState } from "react";
 import { Pressable, View } from "react-native";
 import { router } from "expo-router";
@@ -8,15 +9,13 @@ export default function Create() {
   const [pressed, setPressed] = useState<string | null>(null);
   return (
     <Screen gap={16}>
-      <Txt style={{ fontSize: 20, lineHeight: 28, fontWeight: "500" }}>
-        Create
-      </Txt>
+      <AppHeader title="Create" />
       <View style={{ minHeight: 420, justifyContent: "center", gap: 28 }}>
         <View style={{ gap: 9 }}>
           <Txt serif style={{ fontSize: 31, lineHeight: 39 }}>
             What would you{`\n`}like to create?
           </Txt>
-          <Txt muted style={{ fontSize: 13 }}>
+          <Txt muted style={{ fontSize: 13, lineHeight: 21 }}>
             学びの道をつくる。仲間と道をつなぐ。
           </Txt>
         </View>

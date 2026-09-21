@@ -20,7 +20,7 @@ export function RoadmapCard({
   const shown = roadmap.steps.slice(0, 4);
   const coverWidth = Math.max(
     46,
-    Math.min(80, (Math.min(width, 720) - 88) / shown.length - 10),
+    Math.min(62, (Math.min(width, 720) - 88) / shown.length - 10),
   );
   return (
     <Pressable
@@ -35,7 +35,7 @@ export function RoadmapCard({
         overflow: "hidden",
       }}
     >
-      <View style={{ padding: 20, paddingBottom: 16, gap: 14 }}>
+      <View style={{ padding: 16, paddingBottom: 12, gap: 8 }}>
         <Row style={{ justifyContent: "space-between" }}>
           <Txt style={{ fontSize: 11, color: c.accent, fontWeight: "500" }}>
             {roadmap.category}
@@ -44,7 +44,7 @@ export function RoadmapCard({
             {roadmap.steps.length} steps · {roadmap.duration}
           </Txt>
         </Row>
-        <Txt serif style={{ fontSize: 25, lineHeight: 30 }}>
+        <Txt serif numberOfLines={2} style={{ fontSize: 22, lineHeight: 28 }}>
           {roadmap.title}
         </Txt>
       </View>
@@ -52,8 +52,8 @@ export function RoadmapCard({
         style={{
           backgroundColor: "#F0F3ED",
           paddingHorizontal: 16,
-          paddingVertical: 22,
-          gap: 16,
+          paddingVertical: 14,
+          gap: 10,
         }}
       >
         <Row style={{ gap: 0, alignItems: "flex-end" }}>
@@ -79,8 +79,8 @@ export function RoadmapCard({
           </Txt>
         )}
       </View>
-      <View style={{ padding: 20, gap: 14 }}>
-        <Txt muted style={{ fontSize: 12, lineHeight: 21 }}>
+      <View style={{ padding: 16, gap: 10 }}>
+        <Txt muted numberOfLines={2} style={{ fontSize: 12, lineHeight: 19 }}>
           {roadmap.description}
         </Txt>
         <Row style={{ justifyContent: "space-between" }}>
@@ -96,7 +96,7 @@ export function RoadmapCard({
         <Row
           style={{
             justifyContent: "space-between",
-            paddingTop: 14,
+            paddingTop: 10,
             borderTopWidth: 1,
             borderColor: c.line,
           }}

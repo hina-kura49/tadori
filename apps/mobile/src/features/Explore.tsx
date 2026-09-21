@@ -1,3 +1,4 @@
+import { AppHeader } from "@/components/AppHeader";
 import { useState } from "react";
 import { View, TextInput, ScrollView } from "react-native";
 import { Search, SlidersHorizontal } from "lucide-react-native";
@@ -33,7 +34,7 @@ export default function Explore() {
   );
   return (
     <Screen gap={20} refreshing={q.isRefetching} onRefresh={() => q.refetch()}>
-      <PageTitle
+      <AppHeader
         title="Explore"
         description="どこへ向かうか。どの道を辿るか。"
       />

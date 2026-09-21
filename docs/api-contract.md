@@ -39,3 +39,7 @@ Push payload例：
 Circle snapshotは任意の`memberProgress: Record<string, { step: number; percentage: number }>`（stepは0-based）に対応しました。未共有メンバーのentryは省略します。Mockでは表示名をkeyにしますが、実API接続ではmembersとともに安定したuser IDに揃える必要があります。
 
 プロフィールのデフォルト共有は端末内で作るPNGカードになりました。URL公開が未接続でも画像を共有でき、バックエンドへの投稿APIは呼び出しません。
+
+### Profile avatar
+
+Mobile `Profile.avatarUri` is optional. The profile editor stores selected images in the app's document directory in mock mode (data URLs on web), and includes them in the profile share card. Removing the image restores the initial avatar. API mode requires `POST /v1/uploads/profile-avatar` (multipart `file`, response `{ url: "https://…" }`) and avatar persistence in `PUT /v1/me`; the upload endpoint is an integration contract, not an implemented backend upload service. A backend should normalize omitted `avatarUri` to no avatar for this full profile replacement.

@@ -32,14 +32,17 @@ export function Txt({
   style,
   muted = false,
   serif: editorial = false,
+  numberOfLines,
 }: {
   children: ReactNode;
   style?: TextStyle;
   muted?: boolean;
   serif?: boolean;
+  numberOfLines?: number;
 }) {
   return (
     <Text
+      numberOfLines={numberOfLines}
       style={[
         {
           fontSize: 14,
@@ -530,7 +533,28 @@ export function DataError({ retry }: { retry: () => void }) {
     </Screen>
   );
 }
-export function Avatar({ name, size = 32 }: { name: string; size?: number }) {
+export function Avatar({
+  name,
+  size = 32,
+  uri,
+}: {
+  name: string;
+  size?: number;
+  uri?: string;
+}) {
+  if (uri)
+    return (
+      <Image
+        source={{ uri }}
+        accessibilityLabel={`${name}のアイコン`}
+        style={{
+          width: size,
+          height: size,
+          borderRadius: size / 2,
+          backgroundColor: c.wash,
+        }}
+      />
+    );
   return (
     <View
       style={{

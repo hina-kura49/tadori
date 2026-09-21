@@ -1,3 +1,4 @@
+import { AppHeader } from "@/components/AppHeader";
 import { Pressable, View } from "react-native";
 import { router } from "expo-router";
 import { ArrowUpRight, CalendarDays, Plus } from "lucide-react-native";
@@ -36,29 +37,18 @@ export default function Circles() {
   );
   return (
     <Screen gap={22} refreshing={q.isRefetching} onRefresh={() => q.refetch()}>
-      <Row style={{ justifyContent: "space-between" }}>
-        <View style={{ gap: 4 }}>
-          <Txt
-            style={{
-              fontSize: 27,
-              lineHeight: 35,
-              fontWeight: "500",
-              letterSpacing: -0.7,
-            }}
+      <AppHeader
+        title="Circles"
+        description="ひとりの一歩が、みんなの続きに。"
+        action={
+          <IconButton
+            label="Circleを作成"
+            onPress={() => router.push("/circles/new")}
           >
-            Circles
-          </Txt>
-          <Txt muted style={{ fontSize: 12 }}>
-            ひとりの一歩が、みんなの続きに。
-          </Txt>
-        </View>
-        <IconButton
-          label="Circleを作成"
-          onPress={() => router.push("/circles/new")}
-        >
-          <Plus size={23} color={c.accent} />
-        </IconButton>
-      </Row>
+            <Plus size={23} color={c.accent} />
+          </IconButton>
+        }
+      />
       {circles.map((circle) => {
         const roadmap = d.roadmaps.find((r) => r.id === circle.targetId);
         const book = d.books.find(
@@ -68,7 +58,7 @@ export default function Circles() {
               ? circle.targetId
               : roadmap?.steps[circle.currentStep]?.bookId),
         );
-        const joined = circle.members.includes(d.profile.name);
+
         return (
           <Pressable
             key={circle.id}
@@ -88,7 +78,7 @@ export default function Circles() {
                 <Row style={{ gap: 0 }}>
                   {circle.members.slice(0, 4).map((name, i) => (
                     <View key={name + i} style={{ marginLeft: i ? -8 : 0 }}>
-                      <Avatar name={name} size={38} />
+                      <Avatar name={name} size={44} />
                     </View>
                   ))}
                 </Row>
@@ -99,9 +89,6 @@ export default function Circles() {
                       / {circle.maxMembers} members
                     </Txt>
                   </Txt>
-                  <Txt style={{ fontSize: 10, color: c.accent }}>
-                    {joined ? "参加中" : "Open circle"}
-                  </Txt>
                 </View>
               </Row>
               <Row>
@@ -110,26 +97,23 @@ export default function Circles() {
                 </Txt>
                 <ArrowUpRight size={16} color={c.accent} />
               </Row>
-              <PeoplePath circle={circle} data={d} />
               {book && (
                 <Row
                   style={{
                     gap: 14,
-                    paddingTop: 16,
-                    borderTopWidth: 1,
-                    borderColor: c.line,
+                    paddingTop: 0,
                   }}
                 >
-                  <Cover book={book} width={38} />
+                  <Cover book={book} width={52} />
                   <View style={{ flex: 1, gap: 4 }}>
                     <Txt muted style={{ fontSize: 10 }}>
                       いま一緒に読む本
                     </Txt>
                     <Txt
                       style={{
-                        fontSize: 13,
+                        fontSize: 16,
                         fontWeight: "500",
-                        lineHeight: 21,
+                        lineHeight: 24,
                       }}
                     >
                       {book.title}
@@ -137,6 +121,7 @@ export default function Circles() {
                   </View>
                 </Row>
               )}
+              <PeoplePath circle={circle} data={d} compact />
             </View>
             <Row
               style={{

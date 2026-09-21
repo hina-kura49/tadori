@@ -5,6 +5,7 @@ import * as Sharing from "expo-sharing";
 import { Route } from "lucide-react-native";
 import { useTadori } from "@/hooks/useTadori";
 import {
+  Avatar,
   Button,
   DataError,
   ErrorMessage,
@@ -102,14 +103,17 @@ export default function ShareProfile() {
             MY LEARNING PATH
           </Txt>
         </Row>
-        <View style={{ gap: 3 }}>
-          <Txt style={{ fontSize: 21, lineHeight: 28, fontWeight: "500" }}>
-            {d.profile.name}
-          </Txt>
-          <Txt muted style={{ fontSize: 11 }}>
-            @{d.profile.username}
-          </Txt>
-        </View>
+        <Row style={{ gap: 12 }}>
+          <Avatar name={d.profile.name} uri={d.profile.avatarUri} size={48} />
+          <View style={{ gap: 3 }}>
+            <Txt style={{ fontSize: 21, lineHeight: 28, fontWeight: "500" }}>
+              {d.profile.name}
+            </Txt>
+            <Txt muted style={{ fontSize: 11 }}>
+              @{d.profile.username}
+            </Txt>
+          </View>
+        </Row>
         <LearningTerrain data={d} maxAreas={3} />
         <Row
           style={{
