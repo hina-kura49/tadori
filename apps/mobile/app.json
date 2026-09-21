@@ -1,0 +1,63 @@
+{
+  "expo": {
+    "name": "Tadori",
+    "slug": "tadori",
+    "version": "1.0.0",
+    "scheme": "tadori",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "bundleIdentifier": "app.tadori.mobile",
+      "supportsTablet": true,
+      "associatedDomains": ["applinks:tadori.app"]
+    },
+    "android": {
+      "package": "app.tadori.mobile",
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "https",
+              "host": "tadori.app",
+              "pathPrefix": "/r/"
+            },
+            {
+              "scheme": "https",
+              "host": "tadori.app",
+              "pathPrefix": "/profile/"
+            },
+            {
+              "scheme": "https",
+              "host": "tadori.app",
+              "pathPrefix": "/circles/"
+            }
+          ],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
+      ]
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "single",
+      "name": "Tadori — 誰かが作った学びの道を、辿る。"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      "expo-notifications",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "本に登録する画像を選択します。",
+          "cameraPermission": false,
+          "microphonePermission": false
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}

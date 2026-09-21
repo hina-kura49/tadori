@@ -1,0 +1,14 @@
+{
+  "name": "tadori",
+  "private": true,
+  "workspaces": [
+    "apps/mobile"
+  ],
+  "scripts": {
+    "start": "npm run start -w apps/mobile",
+    "web": "npm run web -w apps/mobile",
+    "typecheck": "npm run typecheck -w apps/mobile",
+    "test": "npm run test -w apps/mobile",
+    "build": "npm run build -w apps/mobile"
+  }
+}
