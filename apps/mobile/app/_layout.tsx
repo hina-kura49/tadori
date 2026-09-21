@@ -6,17 +6,23 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { useTadori } from "@/hooks/useTadori";
+import { isAuthError } from "@/api/client";
 import { observeNotifications } from "@/lib/notifications";
 import { colors } from "@/lib/theme";
 export { ErrorBoundary } from "expo-router";
 function Navigation() {
   const path = usePathname();
-  const { data } = useTadori();
+  const { data, error } = useTadori();
   useEffect(() => observeNotifications(), []);
+  // API 接続時のみ: 未ログイン、または session が切れたらログイン画面へ
+  const needsLogin = isAuthError(error);
   useEffect(() => {
-    if (data && !data.profile.onboarded && path === "/")
+    if (needsLogin && path !== "/login") router.replace("/login");
+  }, [needsLogin, path]);
+  useEffect(() => {
+    if (!needsLogin && data && !data.profile.onboarded && path === "/")
       router.replace("/onboarding");
-  }, [data, path]);
+  }, [needsLogin, data, path]);
   return (
     <Stack
       screenOptions={{
@@ -27,6 +33,10 @@ function Navigation() {
     >
       <Stack.Screen name="(tabs)" />
       <Stack.Screen name="onboarding" options={{ gestureEnabled: false }} />
+      <Stack.Screen
+        name="login"
+        options={{ gestureEnabled: false, animation: "fade" }}
+      />
     </Stack>
   );
 }

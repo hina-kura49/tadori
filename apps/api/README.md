@@ -196,6 +196,7 @@ Zod のエラーは `code: "VALIDATION_ERROR"` になり、`details: [{ path, me
 | --- | --- | --- |
 | GET | `/users/:username` | 公開 Learning Profile (`user` / `stats` / `currentRoadmaps` / `completedRoadmaps` / `createdRoadmaps`) |
 | GET 🔒 | `/me` | current user |
+| GET 🔒 | `/me/dashboard` | アプリ用の集約読み取り。見える Roadmap (Step つき) / 自分の進捗 / Book / Circle (メンバー・次の Schedule) / 通知設定 |
 | PATCH 🔒 | `/me` | `name` / `username` / `bio` / `avatarUrl`。username を送ると `usernameConfirmed` が true になる |
 | DELETE 🔒 | `/me` | アカウント削除 |
 

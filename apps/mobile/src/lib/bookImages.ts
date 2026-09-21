@@ -3,6 +3,9 @@ import * as ImagePicker from "expo-image-picker";
 import * as FileSystem from "expo-file-system/legacy";
 import { apiUrl } from "@/api/client";
 import { session } from "./storage";
+// apps/api に画像 upload の API はまだ無い (保存先のストレージが未決定)。
+// それまでは API 接続時も画像を端末内に保存し、この端末でだけ表示する。
+const imageUploadEnabled = process.env.EXPO_PUBLIC_IMAGE_UPLOAD === "true";
 export async function selectBookImage(): Promise<string | undefined> {
   return selectImage([2, 3]);
 }
@@ -45,7 +48,7 @@ async function persistImage(
   endpoint: string,
   directory: string,
 ): Promise<string> {
-  if (apiUrl) {
+  if (apiUrl && imageUploadEnabled) {
     const form = new FormData();
     if (Platform.OS === "web")
       form.append("file", await (await fetch(uri)).blob(), "cover.jpg");

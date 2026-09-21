@@ -9,7 +9,8 @@ import {
 import { createSeed } from "./seed";
 import { storage } from "@/lib/storage";
 import { normalizeProgress } from "@/lib/progress";
-import { apiUrl, request } from "./client";
+import { apiUrl } from "./client";
+import { remote } from "./remote";
 const key = "tadori.database.v1";
 let queue: Promise<unknown> = Promise.resolve();
 async function read(): Promise<Database> {
@@ -43,10 +44,7 @@ function uid() {
 export const repository = {
   createBook: (input: BookInput) =>
     apiUrl
-      ? request<string>("/v1/books", {
-          method: "POST",
-          body: JSON.stringify(input),
-        })
+      ? remote.createBook(input)
       : mutate((db) => {
           const id = uid();
           db.books.push({
@@ -59,13 +57,10 @@ export const repository = {
           return id;
         }),
   getDashboard: (): Promise<Database> =>
-    apiUrl ? request("/v1/me/dashboard") : read(),
+    apiUrl ? remote.getDashboard() : read(),
   saveProfile: (profile: Profile) =>
     apiUrl
-      ? request<Profile>("/v1/me", {
-          method: "PUT",
-          body: JSON.stringify(profile),
-        })
+      ? remote.saveProfile(profile)
       : mutate((db) => {
           const previous = db.profile.name;
           const previousUsername = db.profile.username;
@@ -86,10 +81,7 @@ export const repository = {
         }),
   enroll: (roadmapId: string) =>
     apiUrl
-      ? request<void>("/v1/enrollments", {
-          method: "POST",
-          body: JSON.stringify({ roadmapId }),
-        })
+      ? remote.enroll(roadmapId)
       : mutate((db) => {
           if (!db.roadmaps.some((r) => r.id === roadmapId))
             throw new Error("Roadmapが見つかりません。");
@@ -102,10 +94,7 @@ export const repository = {
         }),
   setPrimary: (roadmapId: string) =>
     apiUrl
-      ? request<void>("/v1/me/primary-roadmap", {
-          method: "PUT",
-          body: JSON.stringify({ roadmapId }),
-        })
+      ? remote.setPrimary(roadmapId)
       : mutate((db) => {
           db.enrollments.sort((a, b) =>
             a.roadmapId === roadmapId ? -1 : b.roadmapId === roadmapId ? 1 : 0,
@@ -114,10 +103,7 @@ export const repository = {
   progress: (roadmapId: string, stepId: string, value: number) => {
     const progress = normalizeProgress(value);
     return apiUrl
-      ? request<void>(`/v1/enrollments/${roadmapId}/steps/${stepId}`, {
-          method: "PUT",
-          body: JSON.stringify(progress),
-        })
+      ? remote.progress(roadmapId, stepId, value)
       : mutate((db) => {
           const e = db.enrollments.find((e) => e.roadmapId === roadmapId);
           const r = db.roadmaps.find((r) => r.id === roadmapId);
@@ -128,10 +114,7 @@ export const repository = {
   },
   createRoadmap: (input: RoadmapInput) =>
     apiUrl
-      ? request<string>("/v1/roadmaps", {
-          method: "POST",
-          body: JSON.stringify(input),
-        })
+      ? remote.createRoadmap(input)
       : mutate((db) => {
           const id = uid();
           db.roadmaps.push({
@@ -146,10 +129,7 @@ export const repository = {
         }),
   createCircle: (input: CircleInput) =>
     apiUrl
-      ? request<string>("/v1/circles", {
-          method: "POST",
-          body: JSON.stringify(input),
-        })
+      ? remote.createCircle(input)
       : mutate((db) => {
           const id = uid();
           db.circles.push({
@@ -164,7 +144,7 @@ export const repository = {
         }),
   joinCircle: (id: string) =>
     apiUrl
-      ? request<void>(`/v1/circles/${id}/members`, { method: "POST" })
+      ? remote.joinCircle(id)
       : mutate((db) => {
           const c = db.circles.find((c) => c.id === id);
           if (!c) throw new Error("Circleが見つかりません。");
@@ -177,18 +157,12 @@ export const repository = {
         }),
   settings: (settings: NotificationSettings) =>
     apiUrl
-      ? request<void>("/v1/me/notification-settings", {
-          method: "PUT",
-          body: JSON.stringify(settings),
-        })
+      ? remote.settings(settings)
       : mutate((db) => {
           db.notifications = settings;
         }),
   registerPush: (token: string) =>
     apiUrl
-      ? request<void>("/v1/me/devices", {
-          method: "POST",
-          body: JSON.stringify({ token }),
-        })
+      ? remote.registerPush(token)
       : Promise.resolve(),
 };

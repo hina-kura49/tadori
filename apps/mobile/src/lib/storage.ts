@@ -15,4 +15,19 @@ export const session = {
     if (Platform.OS !== "web")
       await SecureStore.setItemAsync("tadori.token", token);
   },
+  clearToken: async () => {
+    if (Platform.OS !== "web")
+      await SecureStore.deleteItemAsync("tadori.token");
+  },
 };
+/** Push Token の登録に使う、この端末 (このインストール) に固定の ID */
+export async function getDeviceId(): Promise<string> {
+  const key = "tadori.deviceId";
+  const saved = await AsyncStorage.getItem(key);
+  if (saved) return saved;
+  const id = `${Platform.OS}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+  await AsyncStorage.setItem(key, id);
+  return id;
+}
+export const devicePlatform = () =>
+  Platform.OS === "ios" ? ("IOS" as const) : ("ANDROID" as const);

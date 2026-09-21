@@ -6,6 +6,51 @@
 
 (2026-09-21 時点の `apps/mobile/src/api/repository.ts`・`src/types/domain.ts`・ルートの `docs/api-contract.md` を元にしています)
 
+## 実装状況 (2026-09-21)
+
+繋ぎ込みは実装済みです。`EXPO_PUBLIC_API_URL` を設定するとアプリは実 API を使い、未設定なら従来どおり端末内 Mock で動きます。
+
+| アプリ側のファイル | 役割 |
+| --- | --- |
+| `src/api/repository.ts` | 入口。`apiUrl` があれば `remote`、無ければ Mock |
+| `src/api/remote.ts` | 実 API を呼ぶ repository (この文書の対応表の実装) |
+| `src/api/mappers.ts` | API の DTO ⇄ アプリの domain model (純粋関数。`tests/mappers.test.ts`) |
+| `src/api/remoteTypes.ts` | API の Response 型の写し。正は `apps/api/src/dto/` |
+| `src/api/localState.ts` | API に保存しない端末内の状態 (interests / メイン Roadmap / リマインドの曜日 / 端末内の画像) |
+| `src/api/client.ts` | `ApiError` (`status` / `code`)、エラー文言、401 で token を破棄 |
+| `src/lib/auth.ts` / `src/features/Login.tsx` | ログイン・登録・ログアウト・アカウント削除 |
+| `app/_layout.tsx` | 401 なら `/login` へ、`usernameConfirmed = false` なら `/onboarding` へ |
+
+読み取りは §3 の案 A をサーバー側に寄せ、**`GET /me/dashboard`** を追加しました (アプリ側で何十回も API を呼ぶ代わりに、サーバーで少数のクエリにまとめる)。
+中身は既存の DTO の組み合わせです: 見える Roadmap (Step つき) / 自分の進捗 / Book / Circle (メンバー・次の Schedule つき) / 通知設定。
+メンバーの進捗は、自分も参加している Circle でだけ共有されます。
+
+まだ繋がっていないもの: Apple / Google ログインのボタン (ネイティブ SDK が必要)、画像 upload、Circle の `announcement`、Web 版 + API (cookie が cross-site になるため同一サイトでの配信が必要)。
+
+### 実機で動かす
+
+```bash
+# 1. API (apps/api)
+pnpm dev                                   # http://<Mac の LAN IP>:4000
+
+# 2. アプリの開発サーバー (apps/mobile)。.env には書かず、このプロセスにだけ渡す
+#    (.env に書くと Mock 前提の e2e テストや他の開発サーバーまで API モードになる)
+EXPO_PUBLIC_API_URL=http://<Mac の LAN IP>:4000 npx expo start --port 8081
+
+# 3. iPhone に入れる (初回と、7 日ごとの期限切れ時。無料の Personal Team の場合)
+npx expo prebuild --platform ios           # ios/ を生成 (git 対象外)。package.json の scripts が書き換わるので戻す
+#   Personal Team では Push / Associated Domains が使えないため、
+#   ios/Tadori/Tadori.entitlements の中身を空の <dict/> にする
+xcodebuild -workspace ios/Tadori.xcworkspace -scheme Tadori -configuration Debug \
+  -destination "id=<iPhone の UDID>" -derivedDataPath ios/build/dd -allowProvisioningUpdates \
+  DEVELOPMENT_TEAM=<Team ID> CODE_SIGN_STYLE=Automatic IPHONEOS_DEPLOYMENT_TARGET=16.4 build
+xcrun devicectl device install app --device <UDID> ios/build/dd/Build/Products/Debug-iphoneos/Tadori.app
+```
+
+`IPHONEOS_DEPLOYMENT_TARGET=16.4` は Expo SDK 55 + Xcode 27 の組み合わせで必要です (一部の pod が iOS 15 未満を指定していてエラーになり、
+expo-router は iOS 16 の API を使っているため)。Expo Go は最新 SDK 専用なので、SDK 55 のこのアプリは開けません。
+UDID は `xcrun devicectl list devices`、Team ID は Xcode の Settings → Accounts で確認できます。
+
 ## 0. 契約が 2 つある問題と、その結論
 
 | | `docs/api-contract.md` (アプリ側が書いた想定) | `apps/api` (実装済み・テスト済み) |
