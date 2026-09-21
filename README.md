@@ -1,5 +1,7 @@
 # Tadori
 
+<img src="apps/mobile/assets/icon.png" alt="Tadoriのアイコン：深緑を背景に、本と学びの道を組み合わせたシンボル" width="128" height="128" />
+
 **誰かが作った学びの道を、辿る。**
 
 技術書・ビジネス書を「順番」と「できるようになること」でつなぐ、学習RoadmapのモバイルMVPです。ホームにはメインRoadmapの今読む一冊を表示します。各本のCheckpointに到達すると、次の一冊へ進みます。
@@ -78,6 +80,8 @@ apps/mobile/
 ## Design System
 
 Editorial × Product Tool。Warm White `#FAFAF8` / Ink `#171717` / Secondary `#737373` / Border `#E5E5E5` / **Deep Teal `#234E49`**。
+
+アプリアイコンは、本と学びの道を組み合わせた深緑のシンボルです。[アイコン画像](apps/mobile/assets/icon.png)を、[Expo設定](apps/mobile/app.json)のアプリアイコンとWebのfaviconに指定しています。画像は内蔵 image_gen で生成し、[生成プロンプト](apps/mobile/assets/icon-prompt.md)も保存しています。
 
 英語の見出しと日本語の説明を組み合わせ、見出しにserif、操作と本文にplatform system fontを使用。余白・細いborder・文字サイズで階層を表現。Primary Actionの高さは52pt、icon buttonは44pt。フォームはキーボード表示に対応し、スクロールして操作できます。
 
