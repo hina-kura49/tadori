@@ -52,12 +52,15 @@ export interface Enrollment {
   startedAt: string;
 }
 export interface Profile {
+  id?: string;
   avatarUri?: string;
   name: string;
   username: string;
   bio: string;
   interests: Category[];
   onboarded: boolean;
+  /** API 接続時のみ。false なら username は自動採番された仮のもの */
+  usernameConfirmed?: boolean;
 }
 export interface Circle {
   id: string;

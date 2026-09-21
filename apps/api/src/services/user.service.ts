@@ -46,10 +46,13 @@ export async function updateCurrentUser(
   input: UpdateMeInput,
 ): Promise<CurrentUserDto> {
   try {
+    // username を「変えた」ときだけ、本人が決めたものとして確定済みにする。
+    // アプリはプロフィール全体を送り直すので、仮の username がそのまま返ってくることがある。
+    // それを確定扱いにすると、自動採番の名前 (user_3f9a...) のまま確定してしまう。
+    const choseUsername = input.username !== undefined && input.username !== authUser.username;
     const user = await userRepository.updateUserProfile(authUser.id, {
       ...input,
-      // username を自分で決めたら確定済みにする (onboarding の完了)
-      ...(input.username ? { usernameConfirmed: true } : {}),
+      ...(choseUsername ? { usernameConfirmed: true } : {}),
     });
     if (!user) throw notFound("USER_NOT_FOUND", "User not found");
     return toCurrentUserDto(user);

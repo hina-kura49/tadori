@@ -193,13 +193,18 @@ export function toDatabase(api: ApiDashboard, local: LocalState): Database {
   return {
     version: 1,
     profile: {
+      id: api.user.id,
       name: api.user.name,
       username: api.user.username,
       bio: api.user.bio ?? "",
       avatarUri: local.avatarUri ?? api.user.avatarUrl ?? undefined,
       interests: local.interests,
-      // username を自分で決め終えているか (Apple / Google 登録の直後は false)
-      onboarded: api.user.usernameConfirmed,
+      // onboarded = Welcome と興味選択を終えたか (端末内の状態)。
+      // username を自分で決め終えた人は、別の端末でも最初からやり直させない
+      onboarded: api.user.usernameConfirmed || local.onboarded === true,
+      // false の間、username は自動採番された仮のもの (user_3f9a...)。
+      // ガイドの最後 (Me) で本人に決めてもらう
+      usernameConfirmed: api.user.usernameConfirmed,
     },
     roadmaps: api.roadmaps.map(toRoadmap),
     books: api.books.map((book) => toBook(book, local)),

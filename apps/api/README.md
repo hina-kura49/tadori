@@ -149,7 +149,7 @@ sessions / accounts / verifications : Better Auth が管理
 
 **username の後決め**: Apple / Google は username を渡してくれないので、signup 時に username が無ければ仮の値 (`user_3f9a1c07b2`) を自動採番し、
 `users.username_confirmed = false` にします。`GET /me` の `usernameConfirmed` が `false` の間、アプリは onboarding で username を決めてもらい、
-`PATCH /me { username }` を呼ぶと確定します。
+`PATCH /me { username }` で**別の username に変える**と確定します (仮の値をそのまま送り返しても確定しません)。
 
 **アカウント削除** (`DELETE /me`): App Store の審査要件です。本人の Roadmap・Circle・進捗・端末・session まで FK の CASCADE で消えます。
 Sign in with Apple を有効にしたら、Apple 側の token revoke もここに追加してください (Future Extension Points)。
@@ -197,7 +197,7 @@ Zod のエラーは `code: "VALIDATION_ERROR"` になり、`details: [{ path, me
 | GET | `/users/:username` | 公開 Learning Profile (`user` / `stats` / `currentRoadmaps` / `completedRoadmaps` / `createdRoadmaps`) |
 | GET 🔒 | `/me` | current user |
 | GET 🔒 | `/me/dashboard` | アプリ用の集約読み取り。見える Roadmap (Step つき) / 自分の進捗 / Book / Circle (メンバー・次の Schedule) / 通知設定 |
-| PATCH 🔒 | `/me` | `name` / `username` / `bio` / `avatarUrl`。username を送ると `usernameConfirmed` が true になる |
+| PATCH 🔒 | `/me` | `name` / `username` / `bio` / `avatarUrl`。username を変えると `usernameConfirmed` が true になる |
 | DELETE 🔒 | `/me` | アカウント削除 |
 
 **Books**

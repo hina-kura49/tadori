@@ -129,8 +129,24 @@ describe("dashboard", () => {
       inviteNotificationEnabled: true,
     },
   };
-  it("仮 username の間は onboarding 未完了として扱う", () => {
-    expect(toDatabase(api, local).profile).toMatchObject({ onboarded: false, bio: "" });
+  it("onboarded (興味選択まで完了) と usernameConfirmed (username を自分で決めた) は別", () => {
+    // 登録直後
+    expect(toDatabase(api, local).profile).toMatchObject({
+      onboarded: false,
+      usernameConfirmed: false,
+      bio: "",
+    });
+    // 興味を選び終えた。username はまだ仮のまま -> アプリは使えるが、Me で username を聞く
+    expect(toDatabase(api, { ...local, onboarded: true }).profile).toMatchObject({
+      onboarded: true,
+      usernameConfirmed: false,
+    });
+    // username を決め終えた人は、別の端末 (local が空) でも onboarding をやり直さない
+    const confirmed = { ...api, user: { ...api.user, usernameConfirmed: true } };
+    expect(toDatabase(confirmed, local).profile).toMatchObject({
+      onboarded: true,
+      usernameConfirmed: true,
+    });
   });
   it("端末内の状態 (メイン Roadmap・表紙・曜日) を重ねる", () => {
     const db = toDatabase(api, {

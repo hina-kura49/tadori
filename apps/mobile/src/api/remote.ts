@@ -46,7 +46,10 @@ export const remote = {
       "/me",
       json("PATCH", {
         name: profile.name,
-        username: profile.username,
+        // 変えたときだけ送る。API は「username が変わった」ことを本人の確定として扱う
+        ...(profile.username !== user.username
+          ? { username: profile.username }
+          : {}),
         bio: profile.bio.trim() ? profile.bio : null,
         ...(isRemoteUrl(profile.avatarUri)
           ? { avatarUrl: profile.avatarUri }
@@ -54,6 +57,7 @@ export const remote = {
       }),
     );
     await updateLocal(user.id, (state) => {
+      state.onboarded = profile.onboarded;
       state.interests = profile.interests;
       // 端末内の画像は API に送れないので、この端末でだけ表示する
       state.avatarUri = isRemoteUrl(profile.avatarUri)

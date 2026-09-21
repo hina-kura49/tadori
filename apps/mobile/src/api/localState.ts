@@ -7,6 +7,8 @@ import { storage } from "@/lib/storage";
 // - avatarUri / bookCovers: 画像 upload API がまだ無いので、端末内のファイルを指す
 
 export interface LocalState {
+  /** Welcome と興味選択を終えたか。API には該当する項目が無い (interests と同じく端末内の状態) */
+  onboarded?: boolean;
   interests: Category[];
   primaryRoadmapId?: string;
   weekdays: number[];

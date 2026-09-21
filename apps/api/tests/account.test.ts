@@ -36,6 +36,13 @@ describe("Provisional username (Apple / Google で登録した直後の状態)",
     expect(me.body.username).toMatch(/^user_[0-9a-f]{10}$/);
     expect(me.body.usernameConfirmed).toBe(false);
 
+    // 仮の username をそのまま送り返しても確定しない (アプリはプロフィール全体を送り直す)
+    const echoed = await api("PATCH", "/me", {
+      headers,
+      json: { name: "Renamed", username: me.body.username },
+    });
+    expect(echoed.body).toMatchObject({ name: "Renamed", usernameConfirmed: false });
+
     // onboarding で username を決めると確定する
     const updated = await api("PATCH", "/me", { headers, json: { username: "New_Name" } });
     expect(updated.status).toBe(200);
