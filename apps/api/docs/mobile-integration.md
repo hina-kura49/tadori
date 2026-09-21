@@ -4,7 +4,29 @@
 設定すると `/v1/...` を呼ぶ作りになっています。しかし **その `/v1/...` は `apps/api` に存在しません**。
 このドキュメントは、アプリの `repository` の各関数を実際の API にどう対応させるかの対応表です。
 
-(2026-09-21 時点の `apps/mobile/src/api/repository.ts` と `src/types/domain.ts` を元にしています)
+(2026-09-21 時点の `apps/mobile/src/api/repository.ts`・`src/types/domain.ts`・ルートの `docs/api-contract.md` を元にしています)
+
+## 0. 契約が 2 つある問題と、その結論
+
+| | `docs/api-contract.md` (アプリ側が書いた想定) | `apps/api` (実装済み・テスト済み) |
+| --- | --- | --- |
+| パス | `/v1/...` | `/roadmaps` `/me/...` など。`/v1` prefix なし |
+| 読み取り | `GET /v1/me/dashboard` で `Database` 全体を 1 回で取得 | リソースごと。一覧は cursor pagination |
+| 書き込み | `PUT` で全置換。response は ID 文字列か 204 | `PATCH` で部分更新。response は更新後の DTO |
+| 進捗のキー | `roadmapId` + `stepId` | `userRoadmapId` + `stepId` |
+| Circle のメンバー | 表示名の配列 (契約書自身が「user ID に移行する想定」と明記) | user ID ベース。`{ role, user: { id, name, username } }` |
+| 画像 upload | `POST /v1/uploads/book-cover` / `profile-avatar` (契約書自身が「未実装の想定」と明記) | **無い** |
+| 認証 | 「別途実装」 | 実装済み (Bearer / cookie、Apple・Google・開発用メール) |
+| 認可・整合性 | 「サーバー側で検証してください」 | 実装済み (policies/ と DB 制約) |
+
+**結論: `apps/api` を正とし、アプリ側に adapter を 1 枚入れる。** 理由:
+
+- `api-contract.md` は Mock をそのまま HTTP にした形で、`Database` 丸ごと取得・表示名ベースのメンバー・全置換 PUT は、
+  実データ (他人の Roadmap や Circle が増える) では成立しません。契約書自身もそれを前提に「移行する想定」と書いています
+- API 側に `/v1` の互換レイヤーを作る案もありますが、エンドポイントが二重になり「小さく明示的な Backend」の方針に反します
+- アプリは `Route → Feature → hook → Repository` の構造なので、**差し替えるのは `src/api/repository.ts` の 1 ファイルだけ**で、画面は無変更で済みます
+
+繋ぎ込みが済んだら `docs/api-contract.md` は削除するか、このファイルへのリンクに置き換えてください (契約が 2 つ残ると次の AI が迷います)。
 
 ## 1. 認証
 
@@ -32,8 +54,9 @@
 | `enroll` (`POST /v1/enrollments`) | `POST /roadmaps/:id/start` | response の `userRoadmapId` を保持する |
 | `progress` (`PUT /v1/enrollments/:roadmapId/steps/:stepId`) | `PATCH /me/roadmaps/:userRoadmapId/steps/:stepId` | **roadmapId ではなく userRoadmapId**。body は `{ status, progressType: "PERCENTAGE", progressValue: "42" }` (文字列) |
 | `setPrimary` (`PUT /v1/me/primary-roadmap`) | **該当なし** | 端末内 (AsyncStorage) に保持するのが簡単 |
-| `createBook` (`POST /v1/books`) | `POST /books` | `coverUri` → `coverImageUrl` (https の URL のみ。画像アップロード API は無い)。`color` / `shortTitle` は UI 専用 |
-| `createRoadmap` (`POST /v1/roadmaps`) | `POST /roadmaps` → Step ごとに `POST /roadmaps/:id/steps` | 下の「4. 値の変換」 |
+| `createBook` (`POST /v1/books`) | `POST /books` | `coverUri` → `coverImageUrl` (https の URL のみ)。`color` / `shortTitle` は UI 専用。response は ID 文字列ではなく `BookDto` (`.id` を使う) |
+| 画像 upload (`POST /v1/uploads/book-cover` / `profile-avatar`) | **該当なし** → 「5.」参照 | API 未接続の間は、画像は端末内保存のままにする |
+| `createRoadmap` (`POST /v1/roadmaps`) | `POST /roadmaps` → Step ごとに `POST /roadmaps/:id/steps` | 下の「4. 値の変換」。response の `.slug` を返す |
 | `createCircle` (`POST /v1/circles`) | `POST /circles` (+ `POST /circles/:id/schedules`) | 下の「4. 値の変換」 |
 | `joinCircle` (`POST /v1/circles/:id/members`) | `POST /circles/:id/join` | |
 | `settings` (`PUT /v1/me/notification-settings`) | `PATCH /me/notification-preferences` | 下の「4. 値の変換」 |
@@ -62,6 +85,8 @@ V1 は A で始め、Explore だけ B (pagination) にするのが現実的で�
 | `Roadmap.duration: string` / `Step.duration: string` | `estimatedDays: number \| null` |
 | `Step.why` | `description` |
 | `Roadmap.creator` / `creatorUsername` | `creator: { name, username, avatarUrl }` |
+| `Profile.avatarUri` | `avatarUrl` (https の URL のみ。端末内ファイルの URI は送れない) |
+| `Profile.username` (3〜24 文字) | 3〜30 文字。アプリ側の制限のほうが厳しいので問題なし |
 | `Roadmap.completedUsers` | **API に無い** (必要なら集計を追加する) |
 | `Enrollment.progress[stepId] = { percentage, status }` | `userProgress.steps[] = { stepId, status, progressType, progressValue }` |
 | `Circle.targetType: "Book"` + `targetId` | `targetType: "BOOK"` + `bookId` または `roadmapId` |
@@ -72,6 +97,24 @@ V1 は A で始め、Explore だけ B (pagination) にするのが現実的で�
 | `NotificationSettings.study` / `time` | `studyReminderEnabled` / `studyReminderTime` (+ `studyReminderTimezone` が必須級) |
 | `NotificationSettings.circle` / `progress` / `invite` | `circleReminderEnabled` / `progressNotificationEnabled` / `inviteNotificationEnabled` |
 | `NotificationSettings.weekdays` / `roadmapId` | **API に無い**。Local Notification の設定なので端末内に保持でよい |
+
+## 4.5 Push 通知の payload
+
+アプリは通知タップ時に **`data.url` だけ**を見て遷移します (`src/lib/links.ts` の `notificationPath`)。API はこれに合わせ、全通知に `data.url` を入れています。
+
+| API の `data.type` | `data.url` | `api-contract.md` での名前 |
+| --- | --- | --- |
+| `CIRCLE_MEETING_REMINDER` | `tadori://circles/:id` | `circle_meeting` |
+| `CIRCLE_JOIN` | `tadori://circles/:id` | `member_joined` |
+| `CIRCLE_INVITE` | `tadori://circles/:id` | `circle_invited` |
+| `ROADMAP_COMPLETED` | `tadori://roadmaps/:slug` | `roadmap_completed` |
+| `NEXT_STEP_AVAILABLE` | `tadori://roadmaps/:slug` | `next_book` |
+| (未実装) | | `circle_start` (Circle の開始日の通知) |
+
+アプリは `type` を参照していないので名前の違いは実害なし。`type` で分岐するようになったら API 側の名前 (大文字) に合わせてください。
+
+`registerPush` には注意点が 2 つあります: `getExpoPushTokenAsync` は EAS の `projectId` が無いと何もしない実装になっている (`app.json` に `extra.eas.projectId` が必要)、
+そして Expo Go では remote push が使えない (development build が必要) ことです。
 
 ## 5. API 側に足すか決める必要があるもの
 
@@ -85,7 +128,8 @@ V1 は A で始め、Explore だけ B (pagination) にするのが現実的で�
 | `Roadmap.completedUsers` | API に追加 (`user_roadmaps` の COUNT。`stepCount` と同じ形で足せる) |
 | Circle の `memberProgress` (メンバーごとの進捗) | API に追加。Roadmap Circle なら `user_roadmaps` から導出できる。Book Circle は設計が必要 |
 | Circle の `announcement` | API に追加 (`circles.announcement` 列) |
-| Book の表紙画像アップロード | 要設計 (保存先のストレージが必要)。V1 は URL 指定のみでも成立する |
+| 画像 upload (Book の表紙 / Profile の avatar) | 要設計。保存先 (Cloudflare R2 / S3 など) と、契約書にある所有者・サイズ・MIME の検証が必要。決まるまでは端末内保存のままにし、API へは画像を送らない |
+| `circle_start` 通知 | 後回しでよい。足すなら `sendDueCircleMeetingReminders` と同じ形 (`circles.start_date` を見る) |
 
 ## 6. 実機から開発中の API に繋ぐ
 

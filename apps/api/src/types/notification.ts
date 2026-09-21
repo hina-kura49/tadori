@@ -12,7 +12,7 @@ export type PushPayload = {
   type: PushNotificationType;
   title: string;
   body: string;
-  /** 画面遷移に必要な ID など。個人情報や secret は入れない */
+  /** `url` はタップ時の遷移先 (deep link)。ほかは ID など。個人情報や secret は入れない */
   data?: Record<string, string>;
 };
 

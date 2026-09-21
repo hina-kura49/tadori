@@ -109,7 +109,7 @@ describe("Progress update", () => {
     expect(send).toHaveBeenCalledTimes(1);
     expect(send.mock.calls[0]?.[0][0]).toMatchObject({
       to: "ExponentPushToken[alice-phone]",
-      data: { type: "NEXT_STEP_AVAILABLE" },
+      data: { type: "NEXT_STEP_AVAILABLE", url: `tadori://roadmaps/${roadmap.slug}` },
     });
   });
 

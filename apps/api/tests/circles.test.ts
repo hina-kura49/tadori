@@ -104,7 +104,11 @@ describe("Circle join / leave", () => {
     expect(send).toHaveBeenCalledTimes(1);
     const messages = send.mock.calls[0]?.[0] ?? [];
     expect(messages.map((message) => message.to)).toEqual(["ExponentPushToken[alice-phone]"]);
-    expect(messages[0]?.data).toMatchObject({ type: "CIRCLE_JOIN", circleId: circle.id });
+    expect(messages[0]?.data).toMatchObject({
+      type: "CIRCLE_JOIN",
+      circleId: circle.id,
+      url: `tadori://circles/${circle.id}`,
+    });
   });
 
   it("二重参加は 409", async () => {

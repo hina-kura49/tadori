@@ -1,3 +1,4 @@
+import { env } from "../lib/env";
 import { type ExpoPushMessage, expoPushClient } from "../lib/expo-push-client";
 import { logger } from "../lib/logger";
 import * as circleRepository from "../repositories/circle.repository";
@@ -25,6 +26,11 @@ import {
 const EXPO_CHUNK_SIZE = 100;
 /** 開催の何分前から Meeting Reminder の対象にするか */
 const MEETING_REMINDER_WINDOW_MINUTES = 60;
+
+// 通知をタップしたときの遷移先。アプリは `data.url` だけを見て画面を開く
+// (apps/mobile/src/lib/links.ts の notificationPath)。
+const roadmapUrl = (slug: string) => `${env.APP_SCHEME}://roadmaps/${slug}`;
+const circleUrl = (circleId: string) => `${env.APP_SCHEME}://circles/${circleId}`;
 
 // ---------------------------------------------------------------------------
 // 送信
@@ -125,7 +131,7 @@ export async function notifyRoadmapCompleted(params: {
     type: "ROADMAP_COMPLETED",
     title: "Roadmap を完走しました",
     body: `「${params.roadmapTitle}」のすべての Checkpoint に到達しました`,
-    data: { roadmapSlug: params.roadmapSlug },
+    data: { url: roadmapUrl(params.roadmapSlug), roadmapSlug: params.roadmapSlug },
   });
 }
 
@@ -138,7 +144,7 @@ export async function notifyNextStepAvailable(params: {
     type: "NEXT_STEP_AVAILABLE",
     title: "次の Step に進めます",
     body: `次の本は「${params.nextBookTitle}」です`,
-    data: { roadmapSlug: params.roadmapSlug },
+    data: { url: roadmapUrl(params.roadmapSlug), roadmapSlug: params.roadmapSlug },
   });
 }
 
@@ -152,7 +158,7 @@ export async function notifyCircleInvite(params: {
     type: "CIRCLE_INVITE",
     title: "Circle に招待されました",
     body: `${params.inviterName} さんから「${params.circleName}」への招待が届きました`,
-    data: { circleId: params.circleId },
+    data: { url: circleUrl(params.circleId), circleId: params.circleId },
   });
 }
 
@@ -169,7 +175,7 @@ export async function notifyCircleJoined(params: {
       type: "CIRCLE_JOIN",
       title: "新しいメンバーが参加しました",
       body: `${params.joinedUserName} さんが「${params.circleName}」に参加しました`,
-      data: { circleId: params.circleId },
+      data: { url: circleUrl(params.circleId), circleId: params.circleId },
     },
     { excludeUserIds: [params.joinedUserId] },
   );
@@ -190,7 +196,11 @@ export async function sendDueCircleMeetingReminders(now: Date = new Date()): Pro
         type: "CIRCLE_MEETING_REMINDER",
         title: "まもなく Circle の予定が始まります",
         body: schedule.title,
-        data: { circleId: schedule.circleId, scheduleId: schedule.id },
+        data: {
+          url: circleUrl(schedule.circleId),
+          circleId: schedule.circleId,
+          scheduleId: schedule.id,
+        },
       });
     }
     return schedules.length;
