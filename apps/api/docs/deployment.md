@@ -2,7 +2,9 @@
 
 この手順で公開するのはHono API。DBは接続済みのSupabaseをそのまま利用する。
 無料枠の指定により、Render Freeを使う。[render.yaml](../../../render.yaml)で `plan: free` を明示している。
-Renderアカウントへの接続・サービス作成・公開URLへのアプリ切り替えは未完了。
+2026-09-22に既存のRender Freeサービスへ公開済み。API URLは https://tadori.onrender.com 。
+Supabase接続と公開ロードマップ10ステップの取得、認証方式の取得、未認証リクエストの401を確認済み。
+iPhoneには公開APIを使うRelease版を上書きインストール・起動済み。本人による携帯回線でのログイン・進捗保存は確認待ち。
 
 ## コンテナ
 
@@ -35,7 +37,7 @@ Renderの `RENDER_EXTERNAL_URL` を認証の公開URLとして自動利用する
 
 デプロイ操作用に `apps/api/.env.deploy` の `RENDER_API_KEY` を入力する。
 APIキーはRenderのAccount Settings → API Keysで発行する。このファイルはGit管理対象外で、Dockerイメージにも含まれない。APIキーをHonoサーバーへ配布しない。
-アカウントへの接続後、対象workspaceと無料サービス枠を確認してサービスを作成する。有料プランへの変更は行わない。
+既存サービス `srv-dap0jkf40ujc73b4pvv0` をDockerランタイムへ設定済み。リージョンはVirginia、自動デプロイはOFF。有料プランへの変更は行わない。
 
 ## サーバーの環境変数
 
@@ -59,7 +61,7 @@ APIキーはRenderのAccount Settings → API Keysで発行する。このファ
 
 ## 公開後の確認
 
-1. `/health` が200を返す。
+1. `/health` が200とJSON `{"status":"ok"}` を返す。
 2. `/api/auth/methods` で現在のログイン方式が有効なことを確認する。
 3. `/roadmaps/web-to-distributed-systems` で公開ロードマップと10ステップを取得できる。
 4. 未ログインで `/me/dashboard` にアクセスすると401になる。
@@ -67,5 +69,21 @@ APIキーはRenderのAccount Settings → API Keysで発行する。このファ
 6. iPhoneのWi-FiをOFFにして、本人のアカウントでログイン・閲覧・進捗保存を確認する。
 
 公開済みURLへの切り替えと実機確認が終わるまでは、手元のAPIサーバーを停止しない。
+
+### iPhone向け再ビルド
+
+公開APIの設定はビルド時に渡す。ローカルのMock APIを使うテストに影響しないよう、共通の `.env` には書かない。
+`apps/mobile` で実行する（実機IDと署名チームは利用環境に合わせる）。
+
+```sh
+EXPO_PUBLIC_API_URL=https://tadori.onrender.com EXPO_PUBLIC_API_TIMEOUT_MS=90000 \
+xcodebuild -workspace ios/Tadori.xcworkspace -scheme Tadori -configuration Release \
+  -destination 'generic/platform=iOS' -derivedDataPath /private/tmp/tadori-device-build \
+  DEVELOPMENT_TEAM=7ZWKBZ43KR IPHONEOS_DEPLOYMENT_TARGET=16.0 \
+  -allowProvisioningUpdates build
+```
+
+今回のXcode環境では依存するExpoRouterのビルドにiOS 16以上の指定が必要。
+App Store提出には別途アーカイブ・配布署名と審査準備が必要。
 
 参考: [Renderの無料枠](https://render.com/docs/free)、[Blueprintの設定](https://render.com/docs/blueprint-spec)、[Render API](https://render.com/docs/api)

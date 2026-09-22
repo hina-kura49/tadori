@@ -65,7 +65,7 @@ DB接続だけではアプリの本番APIは公開されない。Hono APIの配�
 - 15テーブルすべてRLS有効。許可ポリシーは作らず、`anon` / `authenticated` / `PUBLIC` のテーブル権限は0件。
 - Data API自体のON/OFFは変更・確認していない。下記DB権限とRLSで保護している。
 - 接続はサーバー側の `postgres` ロールを使用。認可は引き続きHonoで実施する。
-- 本番APIのデプロイとソーシャルログイン設定は未実行。Mac上のHono APIからSupabaseに接続し、本人が開発用メール認証でアカウントを作成済み。
+- 本番APIをRender Freeの https://tadori.onrender.com へデプロイ済み。Supabase上の既存アカウントをメール・パスワード認証で利用する。ソーシャルログイン設定は未実行。
 - 「蔵品日向」を作成者として `web-to-distributed-systems` を公開登録済み。10冊・10ステップの取得を公開APIで確認。
 
 初回テーブル作成前に、専用の空のプロジェクトへ以下を適用した。
