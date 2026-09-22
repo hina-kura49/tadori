@@ -1,0 +1,163 @@
+{
+  "schemaVersion": 1,
+  "roadmap": {
+    "title": "TypeScriptから分散システムへ — Webアプリの仕組みを辿る",
+    "description": "自分のWebアプリが、コード・DB・通信・OSの上でなぜ動くかを説明し、規模が大きくなったときの故障とトレードオフを考えられるようになる。TypeScriptの基礎文法と小さなアプリの実装経験を前提に、10分野を辿る。本で学ぶ→開発用のTadoriまたは練習アプリで実験→結果を説明する。完了は読了率ではなく各Checkpointの実演と説明で判断する。AIは利用可。ただし生成物の根拠と失敗ケースを自分で説明する。HTTP基礎はAPI設計の前、Networkは後から深掘りする。設計と実装は途中でも往復してよい。資格教材は知識の抜けを確認する補助として使う。実験にはローカルのテストデータを用いる。",
+    "category": "ENGINEERING",
+    "difficulty": "INTERMEDIATE",
+    "visibility": "PUBLIC",
+    "estimatedDays": null
+  },
+  "steps": [
+    {
+      "position": 1,
+      "area": "TypeScript",
+      "book": {
+        "title": "Effective TypeScript 第2版",
+        "author": "Dan Vanderkam",
+        "isbn13": "9784814401093"
+      },
+      "sourceUrl": "https://www.oreilly.co.jp/books/9784814401093/",
+      "step": {
+        "description": "TypeScript\n型設計、型推論、any/unknown、ジェネリックの項目を優先する。TadoriのAPIレスポンスをunknownで受け、実行時検証から判別可能なunionへ変換する。成功・失敗を表すResult<T, E>と網羅的な分岐を実装する。",
+        "checkpoint": "unknownを検証して絞り込み、generics・unionでAPIの成功と失敗を型安全に扱える。異常な入力を拒否するテストが通り、型アサーションで検証を省略していない。型が実行時には消えること、構造的型付けと型推論の根拠を説明できる。",
+        "estimatedDays": null
+      }
+    },
+    {
+      "position": 2,
+      "area": "SQL",
+      "book": {
+        "title": "達人に学ぶSQL徹底指南書 第2版",
+        "author": "ミック",
+        "isbn13": "9784798157825"
+      },
+      "sourceUrl": "https://www.shoeisha.co.jp/book/detail/9784798157825",
+      "step": {
+        "description": "SQL\n結合・集約・サブクエリ・ウィンドウ関数を優先する。CTEも使い、Tadoriのテストデータから月別の学習開始人数と前月比、人気ロードマップ上位10件を生SQLで集計する。SQL未経験ならSELECTとJOINの基礎を先に補う。",
+        "checkpoint": "JOIN、GROUP BY/HAVING、サブクエリ、CTE、Window Functionで集計を実装し、ゼロ件・NULL・同率・月境界・前月ゼロの期待値を確認できる。EXPLAIN ANALYZEのSeq ScanとIndex Scan、推定行数と実測行数を読み分けられる。",
+        "estimatedDays": null
+      }
+    },
+    {
+      "position": 3,
+      "area": "HTTP基礎",
+      "book": {
+        "title": "Webを支える技術",
+        "author": "山本 陽平",
+        "isbn13": "9784774142043"
+      },
+      "sourceUrl": "https://gihyo.jp/book/2010/978-4-7741-4204-3",
+      "step": {
+        "description": "HTTP基礎\nURI・HTTP・RESTを中心に読む。HTTP/3や現在のブラウザ挙動はMDNで補う。開発用APIをcurlとブラウザNetworkタブで観察し、メソッド・ステータス・ヘッダー・認証・キャッシュ・CORSを記録する。補助: https://developer.mozilla.org/ja/docs/Web/HTTP",
+        "checkpoint": "1つの通信をDNS・接続・TLS・HTTPに分けて説明できる。HTTP/1.1・2のTCP利用とHTTP/3のQUIC利用を区別できる。GET/POST/PUT/PATCH/DELETE、冪等性、CookieとAuthorization、Cache-Control、CORSの役割を実際のリクエストで説明できる。",
+        "estimatedDays": null
+      }
+    },
+    {
+      "position": 4,
+      "area": "API設計",
+      "book": {
+        "title": "Web API: The Good Parts",
+        "author": "水野 貴明",
+        "isbn13": "9784873116860"
+      },
+      "sourceUrl": "https://www.oreilly.co.jp/books/9784873116860/",
+      "step": {
+        "description": "API設計\nエンドポイント・レスポンス・HTTPの利用・変更管理・安全性を読む。Tadoriのロードマップ作成と学習開始を題材にAPI契約を記述して実装する。古い認証方式やセキュリティヘッダーをそのまま採用せず、利用ライブラリの現行資料と照合する。",
+        "checkpoint": "認証と所有者の認可、入力検証、統一エラー、ページネーション、検索・並べ替え、重複送信、互換性の方針を説明できる。未認証・他人の編集・不正入力・同時送信をテストし、採用したHTTPメソッドとステータスの理由を説明できる。",
+        "estimatedDays": null
+      }
+    },
+    {
+      "position": 5,
+      "area": "DB設計",
+      "book": {
+        "title": "達人に学ぶDB設計徹底指南書 第2版",
+        "author": "ミック",
+        "isbn13": "9784798186627"
+      },
+      "sourceUrl": "https://www.shoeisha.co.jp/book/detail/9784798186627",
+      "step": {
+        "description": "DB設計\n論理設計・正規化・物理設計・制約を優先する。User、Book、Roadmap、Step、学習登録、進捗のER図とDDLを作る。本の再利用と、同じ本でもStepごとに異なるCheckpointを表現する。",
+        "checkpoint": "ER図からDDLを作成し、1:N/N:M・PK/FK・UNIQUE・CHECK・NULL・削除規則・インデックスの理由を説明できる。二重の学習登録を制約で防ぎ、途中失敗時のロールバックを実証できる。主な読み書きとトランザクション境界を説明できる。",
+        "estimatedDays": null
+      }
+    },
+    {
+      "position": 6,
+      "area": "Network",
+      "book": {
+        "title": "マスタリングTCP/IP 入門編 第6版",
+        "author": "井上 直也、村山 公保、竹下 隆史、荒井 透、苅田 幸雄",
+        "isbn13": "9784274224478"
+      },
+      "sourceUrl": "https://www.ohmsha.co.jp/book/9784274224478.html",
+      "step": {
+        "description": "Network\nIP・TCP/UDP・DNS・ルーティング・セキュリティを中心に読む。開発用APIへの通信をcurl、dig、ping、tracerouteで観察し、Linuxではssで待受ポートを確認する。localhostと別ホストへの通信経路を図にする。",
+        "checkpoint": "IP・port・socket・TCP/UDP・DNS・NAT・routing・TLSを通信経路に結び付けて説明できる。名前解決失敗、接続拒否、タイムアウト、HTTPエラーを切り分けられる。pingに応答しないことだけでサービス停止と断定しない。",
+        "estimatedDays": null
+      }
+    },
+    {
+      "position": 7,
+      "area": "OS / Linux",
+      "book": {
+        "title": "Operating Systems: Three Easy Pieces",
+        "author": "Remzi H. Arpaci-Dusseau、Andrea C. Arpaci-Dusseau",
+        "isbn13": null
+      },
+      "sourceUrl": "https://pages.cs.wisc.edu/~remzi/OSTEP/",
+      "step": {
+        "description": "OS / Linux\nProcesses、Address Spaces、Paging、Concurrency and Threads、Locks、I/O、Files and Directoriesを優先する。Linux操作が初めてなら『新しいLinuxの教科書 第2版』（三宅英明・大角祐介）を先に併読: https://www.sbcr.jp/product/4815624316/ 。ローカルLinux VMでNode.jsを動かし、ps/top、/proc、lsof/ss、straceで観察する。",
+        "checkpoint": "Node.jsのPID・メモリ・FD・待受socket・権限を調査できる。process/thread、仮想メモリ、system call、context switch、並行と並列を説明できる。CPUを占有する処理が応答を止める実験を行い、event loopとOSの役割を区別して説明できる。",
+        "estimatedDays": null
+      }
+    },
+    {
+      "position": 8,
+      "area": "DB内部",
+      "book": {
+        "title": "詳説 データベース",
+        "author": "Alex Petrov",
+        "isbn13": "9784873119540"
+      },
+      "sourceUrl": "https://www.oreilly.co.jp/books/9784873119540/",
+      "step": {
+        "description": "DB内部\nまず第I部のストレージエンジンを読む。PostgreSQL固有のMVCC・WAL・ロック・分離レベル・実行計画は、利用バージョンの公式マニュアルで補う: https://www.postgresql.org/docs/ 。開発用DBの2接続で競合と可視性を観察する。",
+        "checkpoint": "B-tree・page・buffer・WAL・MVCCを使って読み書きの流れを説明できる。2接続でRead CommittedとSerializableの差を再現し、再試行の必要性を説明できる。EXPLAIN (ANALYZE, BUFFERS)で索引の前後を比較し、索引の書込コストとUPDATE後のVACUUMの役割を説明できる。",
+        "estimatedDays": null
+      }
+    },
+    {
+      "position": 9,
+      "area": "Software Architecture",
+      "book": {
+        "title": "ソフトウェアアーキテクチャの基礎 第2版",
+        "author": "Mark Richards、Neal Ford",
+        "isbn13": "9784814401550"
+      },
+      "sourceUrl": "https://www.oreilly.co.jp/books/9784814401550/",
+      "step": {
+        "description": "Software Architecture\nモジュール性・品質特性・各アーキテクチャスタイル・意思決定を読む。Tadoriの認証・ロードマップ・学習進捗を題材に境界と依存関係を描き、現状維持を含む設計案を比較する。設計の基礎はこの段階を待たず実装中にも学ぶ。",
+        "checkpoint": "Layered、Modular Monolith、Hexagonal、Microservices、Event Drivenを同一軸の排他的な選択肢とせず、構成・境界・通信の違いとして整理できる。品質要求に対する選択、代替案、犠牲、見直し条件をADRに記録し、1つの境界変更をテスト付きで実装できる。",
+        "estimatedDays": null
+      }
+    },
+    {
+      "position": 10,
+      "area": "Distributed Systems",
+      "book": {
+        "title": "データ指向アプリケーションデザイン",
+        "author": "Martin Kleppmann",
+        "isbn13": "9784873118703"
+      },
+      "sourceUrl": "https://www.oreilly.co.jp/books/9784873118703/",
+      "step": {
+        "description": "Distributed Systems\n日本語版を教材として使用。複製・パーティショニング・トランザクション・分散システムの障害・一貫性と合意を優先し、その後ストリーム処理へ進む。練習用Queue/Workerで重複配信・応答消失・再試行を起こし、冪等な処理を検証する。",
+        "checkpoint": "replication lag、network partition、leader障害、重複配信による故障を図示できる。CAPの議論がネットワーク分断時の保証に関わること、consensusとreplicationの違い、exactly-onceの保証範囲を説明できる。再試行でも効果が二重にならない実験と、整合性・可用性・遅延の設計判断を示せる。",
+        "estimatedDays": null
+      }
+    }
+  ]
+}

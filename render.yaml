@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: tadori
+    runtime: docker
+    plan: free
+    region: virginia
+    rootDir: apps/api
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    autoDeployTrigger: off
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false
+      - key: BETTER_AUTH_SECRET
+        generateValue: true
+      - key: AUTH_EMAIL_PASSWORD_ENABLED
+        value: "true"
+      - key: APP_SCHEME
+        value: tadori
+      - key: LOG_LEVEL
+        value: info

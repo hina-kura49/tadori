@@ -19,6 +19,7 @@ const envSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   PORT: z.coerce.number().int().positive().default(4000),
   DATABASE_URL: z.string().min(1),
+  DATABASE_MIGRATION_URL: optionalString,
   BETTER_AUTH_SECRET: z.string().min(32, "must be at least 32 characters"),
   BETTER_AUTH_URL: z.url(),
   CORS_ORIGIN: z
@@ -60,7 +61,11 @@ export type Env = Omit<ParsedEnv, "AUTH_EMAIL_PASSWORD_ENABLED"> & {
 };
 
 function loadEnv(): Env {
-  const parsed = envSchema.safeParse(process.env);
+  const parsed = envSchema.safeParse({
+    ...process.env,
+    // Renderが割り当てたHTTPS URLを使う。独自ドメインは明示設定を優先。
+    BETTER_AUTH_URL: process.env.BETTER_AUTH_URL || process.env.RENDER_EXTERNAL_URL,
+  });
   if (!parsed.success) {
     // 値そのものは出力しない (secret が混ざるため)。キーと理由だけ出す。
     const problems = parsed.error.issues

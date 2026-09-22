@@ -1,5 +1,10 @@
 import { session } from "@/lib/storage";
 export const apiUrl = process.env.EXPO_PUBLIC_API_URL?.replace(/\/+$/, "");
+const configuredTimeout = Number(process.env.EXPO_PUBLIC_API_TIMEOUT_MS);
+const requestTimeoutMs =
+  Number.isFinite(configuredTimeout) && configuredTimeout >= 1000 && configuredTimeout <= 120000
+    ? configuredTimeout
+    : 12000;
 
 /** API が返したエラー。`code` は apps/api/src/lib/errors.ts の ERROR_CODES */
 export class ApiError extends Error {
@@ -45,7 +50,7 @@ export async function request<T>(
   options: RequestInit = {},
 ): Promise<T> {
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 12000);
+  const timeout = setTimeout(() => controller.abort(), requestTimeoutMs);
   try {
     const token = await session.getToken();
     const response = await fetch(`${apiUrl}${path}`, {

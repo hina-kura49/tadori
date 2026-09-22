@@ -342,6 +342,7 @@ progress.service / circle.service ──> notification.service.ts ──> lib/ex
 | Name | 必須 | 既定 | 説明 |
 | --- | --- | --- | --- |
 | `DATABASE_URL` | ✔ | | PostgreSQL 接続文字列 |
+| `DATABASE_MIGRATION_URL` | | `DATABASE_URL` | マイグレーション・Drizzle Kit用。Direct connection または Session pooler |
 | `BETTER_AUTH_SECRET` | ✔ | | 32 文字以上。`openssl rand -base64 32` |
 | `BETTER_AUTH_URL` | ✔ | | API の公開 URL (例 `http://localhost:4000`) |
 | `CORS_ORIGIN` | | (なし) | カンマ区切り。Web クライアント用 |
@@ -358,6 +359,10 @@ progress.service / circle.service ──> notification.service.ts ──> lib/ex
 Logging: development は読みやすい 1 行、production は JSON 1 行、test は silent。リクエストログは method / path / status / 所要時間のみで、header・cookie・body・token は記録しません。
 
 ## Development Setup
+
+Supabaseを本番DBに使う場合は [Supabase接続手順](docs/supabase.md) を参照してください。`pnpm db:check` で接続とアプリ用テーブルの存在を確認できます。
+
+APIをMacの外で常時稼働させる手順は [本番APIの公開](docs/deployment.md) を参照してください。
 
 必要なもの: Node.js 22+ / pnpm / PostgreSQL (ローカル、または付属の docker compose)
 
