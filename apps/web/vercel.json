@@ -1,0 +1,11 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "vite",
+  "installCommand": "pnpm install --frozen-lockfile --filter @tadori/web...",
+  "buildCommand": "pnpm build",
+  "outputDirectory": "dist",
+  "rewrites": [
+    { "source": "/_api/:path*", "destination": "/api/proxy?__path=:path*" },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}

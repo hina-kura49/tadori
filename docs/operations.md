@@ -4,9 +4,9 @@
 |---|---|---|
 | DB | docker compose の PostgreSQL（`localhost:55432`） | Supabase |
 | API | `pnpm dev:api` → http://localhost:4000 | Render（https://tadori.onrender.com） |
-| Web | `pnpm web` → http://localhost:5173 | Cloudflare Pages |
+| Web | `pnpm web` → http://localhost:5173 | Vercel |
 | mobile | `EXPO_PUBLIC_API_URL=http://<MacのIP>:4000 pnpm start` | リリースビルドに本番 URL を埋め込む |
-| 設定ファイル | `apps/api/.env` | Render / Cloudflare の環境変数（手元の控えは `apps/api/.env.production`） |
+| 設定ファイル | `apps/api/.env` | Render / Vercel の環境変数（手元の控えは `apps/api/.env.production`） |
 
 `.env` 以外の `.env.*`（`.env.example` を除く）は Git に入らない。
 
@@ -47,7 +47,7 @@ pnpm db:migrate       # ローカル DB に当てる
    ```
    `ENV_FILE=.env.production` を付けたときだけ本番の設定を読む。付け忘れるとローカル DB に当たるだけで、本番には触れない。
 3. Render で API をデプロイする（自動デプロイは OFF）。
-4. Web は Cloudflare Pages が main から自動で公開する（[手順](web/deployment.md)）。API より先に Web が出ると、まだ無い API を呼んでしまうので、API の変更を含むときは API を先に出す。
+4. Web は Vercel が main から自動で公開する（[手順](web/deployment.md)）。API より先に Web が出ると、まだ無い API を呼んでしまうので、API の変更を含むときは API を先に出す。
 
 ### 未決定：自動化するかどうか
 
@@ -60,5 +60,5 @@ pnpm db:migrate       # ローカル DB に当てる
 
 - Render の設定：Root Directory を空欄、Dockerfile Path を `./apps/api/Dockerfile` に変更する（pnpm ワークスペースへの移行のため。[詳細](../apps/api/docs/deployment.md)）。
 - 本番 DB へ `0002_user_preferences` を当てる（上の手順2）。
-- `openssl rand -hex 32` で合言葉を作り、Render と Cloudflare Pages の両方に `PROXY_SHARED_SECRET` として登録する。
-- Render の `CORS_ORIGIN` に Cloudflare Pages の URL を足す。
+- `openssl rand -hex 32` で合言葉を作り、Render と Vercel の両方に `PROXY_SHARED_SECRET` として登録する。
+- Render の `CORS_ORIGIN` に Vercel の URL を足す。

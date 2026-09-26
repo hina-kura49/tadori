@@ -31,7 +31,7 @@ pnpm web
 ```
 
 `apps/api/.env` はローカル用です。ローカルと本番（main）の使い分けは [運用](docs/operations.md) を参照してください。
-本番はCloudflare Pagesで配信し、`apps/web/functions/_api/[[path]].ts` がRenderのAPIへ中継します（[手順](docs/web/deployment.md)）。
+本番はVercelで配信し、`apps/web/api/proxy.ts`（Vercel Functions）がRenderのAPIへ中継します（[手順](docs/web/deployment.md)）。
 
 Expo SDK 55に対応するExpo Go、またはdevelopment buildで開いてください。今回の確認環境では、XcodeのシミュレーターGUIはDeviceHubという名称です。
 

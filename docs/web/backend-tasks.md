@@ -10,7 +10,7 @@ Web 版（`apps/web`）を本番に出すまでに、API（`apps/api`）側で�
 > - オンボーディングで興味のある分野を選び、`PATCH /me/preferences` に保存（`apps/web/src/routes/onboarding.tsx`）
 > - Today のメインの Roadmap を `primaryRoadmapId` から決め、「メインにする」で切り替え（`routes/today.tsx`）
 > - 設定画面で興味のある分野を編集（`routes/settings.tsx`）
-> - 中継（`functions/_api/[[path]].ts`）が `x-client-ip` と `x-proxy-secret` を付ける
+> - 中継（`apps/web/api/proxy.ts`）が `x-client-ip` と `x-proxy-secret` を付ける
 
 ## まず前提：Web 版は「同じオリジンの中継」で API を呼ぶ
 
@@ -20,7 +20,7 @@ Web 版はこの制限を避けるため、API を直接呼ばずに **自分と
 ```
 ブラウザ ──> https://<Web のドメイン>/_api/me ──(中継)──> https://tadori.onrender.com/me
              ・開発中: Vite の proxy（apps/web/vite.config.ts）
-             ・本番  : Cloudflare Pages Functions（apps/web/functions/_api/[[path]].ts）
+             ・本番  : Vercel Functions（apps/web/api/proxy.ts。vercel.json の rewrites で /_api/* を回す）
 ```
 
 ブラウザから見ると全部「Web のドメイン」との通信なので、
@@ -91,9 +91,9 @@ CORS_ORIGIN=http://localhost:5173,http://localhost:8081
 ```
 ローカル用の `apps/api/.env` には設定済みです。
 
-本番（Render）: Web 版を Cloudflare Pages に公開して URL が決まったら、今の値の末尾に足します。
+本番（Render）: Web 版を Vercel に公開して URL が決まったら、今の値の末尾に足します。
 ```
-CORS_ORIGIN=<今の値>,https://<プロジェクト名>.pages.dev
+CORS_ORIGIN=<今の値>,https://<プロジェクト名>.vercel.app
 ```
 独自ドメインを付けたら、それも足します。保存すると再デプロイが必要です（自動デプロイは OFF なので手動で Deploy）。
 
@@ -119,8 +119,8 @@ curl -s -b /tmp/cj -H "Content-Type: application/json" -H "Origin: http://localh
 （`webcheck@example.com` はローカル DB にある確認用アカウントです。無ければ `sign-up/email` に `name` 付きで送って作ってください。）
 
 ### つまずきポイント
-- **末尾の `/` を付けない**。`https://example.pages.dev/` と書くと一致しません。
-- Cloudflare Pages は **プレビュー用 URL**（`https://<ハッシュ>.<プロジェクト名>.pages.dev`）も発行します。プレビューでもログインを試したいなら、それも足す必要があります。
+- **末尾の `/` を付けない**。`https://example.vercel.app/` と書くと一致しません。
+- Vercel は **プレビュー用 URL**（ブランチやプルリクエストごと）も発行します。プレビューでもログインを試したいなら、それも足す必要があります。
 - Cookie が無いリクエストでも、`Origin` や `Sec-Fetch-*` ヘッダーが付いていれば better-auth はチェックします（ブラウザからのサインインはこちら）。「Cookie が無いから大丈夫」ではありません。
 
 ---
@@ -177,7 +177,7 @@ set-cookie: __Secure-better-auth.session_token=...; Max-Age=604800; Path=/; Http
 - **`advanced.*` のコード変更は不要** です
 
 ### 中継側に必要な条件（フロントエンド担当への確認事項）
-Cookie 設定を変えない代わりに、中継（Pages Functions）が次を守る必要があります。フロントエンドの実装を読んで確認してください。
+Cookie 設定を変えない代わりに、中継（Vercel Functions）が次を守る必要があります。フロントエンドの実装を読んで確認してください。
 
 1. **`Set-Cookie` を書き換えずに、複数あっても全部返す**。better-auth はログイン時に複数の Cookie を返すことがあります。
 2. **`Origin` ヘッダーをそのまま API に渡す**（課題1のチェックに使われるため）。
@@ -257,7 +257,7 @@ Rate limiting could not determine a client IP and is falling back to a single sh
          .filter((origin) => origin.length > 0),
      ),
    APP_SCHEME: z.string().min(1).default("tadori"),
-+  // Web 版の中継 (Cloudflare Pages Functions) と API だけが知る合言葉。
++  // Web 版の中継 (Vercel Functions: apps/web/api/proxy.ts) と API だけが知る合言葉。
 +  // 一致したリクエストだけ、中継が付けた x-client-ip を本当の IP として信じる
 +  PROXY_SHARED_SECRET: optionalString,
    EXPO_ACCESS_TOKEN: optionalString,
@@ -457,7 +457,7 @@ describe("clientIp", () => {
 
 **`.env.example`** にも1行足しておきます（値は書かない）。
 ```
-# Web 版の中継と共有する合言葉。Cloudflare Pages 側にも同じ値を設定する (openssl rand -hex 32 で作る)
+# Web 版の中継と共有する合言葉。Vercel 側にも同じ値を設定する (openssl rand -hex 32 で作る)
 PROXY_SHARED_SECRET=
 ```
 
@@ -482,7 +482,7 @@ done; echo
 ### 本番に出すとき
 1. `openssl rand -hex 32` で合言葉を作る。
 2. Render の Environment に `PROXY_SHARED_SECRET` を追加する。
-3. Cloudflare Pages の環境変数にも同じ値を入れてもらう（中継が `x-proxy-secret` に入れて送る）。
+3. Vercel の環境変数にも同じ値を入れてもらう（中継が `x-proxy-secret` に入れて送る）。
 
 ### つまずきポイント
 - **テストでは外している理由**: テストは1ファイルで何十人も新規登録します。制限を掛けたままだと途中から `429` になって無関係なテストが落ちます。だからミドルウェアは小さな Hono アプリに付けて単体で確かめています。

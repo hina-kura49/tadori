@@ -35,7 +35,7 @@ const envSchema = z.object({
         .filter((origin) => origin.length > 0),
     ),
   APP_SCHEME: z.string().min(1).default("tadori"),
-  // Web 版の中継 (Cloudflare Pages Functions) と API だけが知る合言葉。
+  // Web 版の中継 (Vercel Functions: apps/web/api/proxy.ts) と API だけが知る合言葉。
   // 一致したリクエストだけ、中継が付けた x-client-ip を本当の IP として信じる
   PROXY_SHARED_SECRET: optionalString,
   EXPO_ACCESS_TOKEN: optionalString,
