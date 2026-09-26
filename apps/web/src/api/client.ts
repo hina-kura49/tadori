@@ -28,6 +28,8 @@ export async function unwrap<T>(
   pending: Promise<{ ok: boolean; status: number; json(): Promise<T> }>,
 ): Promise<Exclude<T, { code: string; message: string }>> {
   const res = await pending;
+  // 204 No Content は本文が無い (削除系)
+  if (res.status === 204) return undefined as Exclude<T, { code: string; message: string }>;
   if (res.ok) return (await res.json()) as Exclude<T, { code: string; message: string }>;
   const body = (await res.json().catch(() => ({}))) as { code?: string; message?: string };
   throw new ApiError(res.status, body.code ?? "UNKNOWN", body.message ?? "通信に失敗しました");
