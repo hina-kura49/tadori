@@ -4,8 +4,11 @@ import { z } from "zod";
 // 環境変数の読み込みと検証はこのファイルだけで行う。
 // 他のファイルは process.env を直接読まず、必ず `env` を import する。
 
-// 既に設定済みの変数は上書きされない (テストや本番の設定が優先される)
-if (existsSync(".env")) process.loadEnvFile(".env");
+// 既に設定済みの変数は上書きされない (本番の設定が優先される)。
+// .env はローカル開発用。本番 DB を意図して操作するときだけ ENV_FILE=.env.production を付ける。
+// テストは vitest.config.ts の値だけで動かし、手元の .env に左右されないようにする。
+const envFile = process.env.ENV_FILE ?? ".env";
+if (!process.env.VITEST && existsSync(envFile)) process.loadEnvFile(envFile);
 
 /** 未設定・空文字は undefined として扱う */
 const optionalString = z

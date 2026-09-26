@@ -5,3 +5,5 @@ dist
 .env.deploy
 *.log
 coverage
+.env.*
+!.env.example

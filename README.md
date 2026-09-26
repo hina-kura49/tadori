@@ -24,13 +24,13 @@ pnpm --filter @tadori/mobile web -- --port 8087
 ブラウザ向けのWeb版です。APIへは同じオリジンの `/_api` を経由して繋ぎ、ログインはCookieで保持します。
 
 ```sh
-# ローカルのPostgres（Docker）に繋いだAPIを http://localhost:4000 で起動
-./scripts/local-api.sh --seed   # 初回だけ --seed でサンプルデータも入れる
+# ローカルのPostgres（docker compose）に繋いだAPIを http://localhost:4000 で起動
+pnpm dev:api --seed   # 初回だけ --seed でサンプルデータも入れる
 # 別のターミナルで Web を http://localhost:5173 で起動（/_api を localhost:4000 へ中継）
 pnpm web
 ```
 
-`apps/api/.env` が本番DBを指していても、`scripts/local-api.sh` はDBの接続先をローカルへ上書きします。
+`apps/api/.env` はローカル用です。ローカルと本番（main）の使い分けは [運用](docs/operations.md) を参照してください。
 本番はCloudflare Pagesで配信し、`apps/web/functions/_api/[[path]].ts` がRenderのAPIへ中継します（[手順](docs/web/deployment.md)）。
 
 Expo SDK 55に対応するExpo Go、またはdevelopment buildで開いてください。今回の確認環境では、XcodeのシミュレーターGUIはDeviceHubという名称です。

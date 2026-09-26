@@ -57,14 +57,14 @@ Cloudflare Pages は、トップレベルに `404.html` が無いと SPA とみ�
 ## 手元で本番に近い形を試す
 
 ```sh
-./scripts/local-api.sh                        # ローカル API (localhost:4000)
+pnpm dev:api                                  # ローカル API (localhost:4000)
 pnpm --filter @tadori/web build
 cd apps/web
 npx wrangler pages dev dist --binding API_ORIGIN=http://localhost:4000
 # → http://localhost:8788 で、Functions の中継を含めて動く
 ```
 
-`http://localhost:8788` をローカル API の `CORS_ORIGIN` に入れておく（`scripts/local-api.sh` に設定済み）。
+`http://localhost:8788` をローカル API の `CORS_ORIGIN` に入れておく（ローカル用の `apps/api/.env` に設定済み）。
 
 ## まだ確認していないこと
 

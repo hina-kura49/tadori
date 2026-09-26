@@ -3,7 +3,7 @@ import { TEST_DATABASE_URL } from "./tests/helpers/test-database-url.ts";
 
 // テストは実 PostgreSQL (tadori_test) に対して実行する。
 // DB を共有するためファイル並列実行は無効化している。
-// 接続先は TEST_DATABASE_URL で上書きできる (既定: postgres://localhost:5432/tadori_test)。
+// 接続先は TEST_DATABASE_URL で上書きできる (既定: docker compose の DB の tadori_test)。
 
 export default defineConfig({
   test: {

@@ -48,12 +48,12 @@ Web 版はこの制限を避けるため、API を直接呼ばずに **自分と
 # ローカルの Postgres に繋いだ API を起動（本番 DB には繋がらない）
 ./scripts/local-api.sh
 
-# API のテスト（テスト用 DB: postgres://localhost:5432/tadori_test）
+# API のテスト（テスト用 DB: postgres://tadori:tadori@localhost:55432/tadori_test）
 pnpm --filter @tadori/api test
 pnpm --filter @tadori/api typecheck
 ```
 
-> 注意: `apps/api/.env` の `DATABASE_URL` は本番の Supabase を向いています。`pnpm --filter @tadori/api dev` を素のまま実行すると本番 DB に繋がるので、動作確認は必ず `./scripts/local-api.sh` を使ってください。
+> `apps/api/.env` はローカル DB（docker compose、`localhost:55432`）向けです。本番の値は `.env.production`（Git 管理外）にあり、`ENV_FILE=.env.production` を付けたときだけ読まれます（[運用](../operations.md)）。
 
 ---
 
@@ -89,7 +89,7 @@ Web 版からのログイン・ログアウトが `403 INVALID_ORIGIN` になら
 ```
 CORS_ORIGIN=http://localhost:5173,http://localhost:8081
 ```
-`./scripts/local-api.sh` はこの値を起動時に上書きで設定しているので、スクリプト経由なら `.env` を変えなくても動きます。`pnpm dev` を直接使うときのために揃えておきましょう。
+ローカル用の `apps/api/.env` には設定済みです。
 
 本番（Render）: Web 版を Cloudflare Pages に公開して URL が決まったら、今の値の末尾に足します。
 ```

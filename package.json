@@ -2,9 +2,11 @@
   "name": "tadori",
   "private": true,
   "scripts": {
-    "start": "pnpm --filter @tadori/mobile start",
+    "db:up": "docker compose -f apps/api/docker-compose.yml up -d --wait db",
+    "db:down": "docker compose -f apps/api/docker-compose.yml stop db",
+    "dev:api": "./scripts/local-api.sh",
     "web": "pnpm --filter @tadori/web dev",
-    "api": "pnpm --filter @tadori/api dev",
+    "start": "pnpm --filter @tadori/mobile start",
     "typecheck": "pnpm -r typecheck",
     "test": "pnpm -r test",
     "build": "pnpm -r build"

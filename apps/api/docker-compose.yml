@@ -1,14 +1,24 @@
-# 開発用 PostgreSQL。API 本体はホストで `pnpm dev` する。
+# ローカル開発用 PostgreSQL。API 本体はホストで `pnpm dev` する。
+#   docker compose up -d db   (リポジトリのルートからは `pnpm db:up`)
+# 開発用 DB (tadori) とテスト用 DB (tadori_test) を同じコンテナに置く。
+# 5432 は他の PostgreSQL とぶつかりやすいので 55432 で公開する。
 services:
   db:
     image: postgres:17
+    container_name: tadori-local-db
     environment:
       POSTGRES_USER: tadori
       POSTGRES_PASSWORD: tadori
       POSTGRES_DB: tadori
     ports:
-      - "5432:5432"
+      - "55432:5432"
     volumes:
       - tadori_pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "tadori"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
 volumes:
   tadori_pg:
+    name: tadori_local_pg

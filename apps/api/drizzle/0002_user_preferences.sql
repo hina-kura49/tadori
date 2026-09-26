@@ -9,4 +9,12 @@ CREATE TABLE "user_preferences" (
 --> statement-breakpoint
 ALTER TABLE "user_preferences" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
 ALTER TABLE "user_preferences" ADD CONSTRAINT "user_preferences_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "user_preferences" ADD CONSTRAINT "user_preferences_primary_roadmap_id_roadmaps_id_fk" FOREIGN KEY ("primary_roadmap_id") REFERENCES "public"."roadmaps"("id") ON DELETE set null ON UPDATE no action;
+ALTER TABLE "user_preferences" ADD CONSTRAINT "user_preferences_primary_roadmap_id_roadmaps_id_fk" FOREIGN KEY ("primary_roadmap_id") REFERENCES "public"."roadmaps"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+-- 他のテーブルと同じく、Supabase の Data API 用ロールからは触れないようにする (ローカルの PostgreSQL にはロールが無いので何もしない)
+REVOKE ALL ON TABLE "user_preferences" FROM PUBLIC;--> statement-breakpoint
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'anon') THEN
+    REVOKE ALL ON TABLE "user_preferences" FROM anon, authenticated;
+  END IF;
+END $$;
