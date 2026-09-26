@@ -1,0 +1,7 @@
+packages:
+  - apps/*
+  - packages/*
+
+# esbuild などインストール時にビルドが必要なものだけ許可する
+onlyBuiltDependencies:
+  - esbuild

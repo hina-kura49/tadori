@@ -1,14 +1,13 @@
 {
   "name": "tadori",
   "private": true,
-  "workspaces": [
-    "apps/mobile"
-  ],
   "scripts": {
-    "start": "npm run start -w apps/mobile",
-    "web": "npm run web -w apps/mobile",
-    "typecheck": "npm run typecheck -w apps/mobile",
-    "test": "npm run test -w apps/mobile",
-    "build": "npm run build -w apps/mobile"
-  }
+    "start": "pnpm --filter @tadori/mobile start",
+    "web": "pnpm --filter @tadori/web dev",
+    "api": "pnpm --filter @tadori/api dev",
+    "typecheck": "pnpm -r typecheck",
+    "test": "pnpm -r test",
+    "build": "pnpm -r build"
+  },
+  "packageManager": "pnpm@10.30.2"
 }

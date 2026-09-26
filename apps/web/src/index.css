@@ -1,0 +1,17 @@
+@import "tailwindcss";
+
+/* mobile (apps/mobile/src/lib/theme.ts) と同じ色 */
+@theme {
+  --color-paper: #fafaf8;
+  --color-ink: #171717;
+  --color-muted: #737373;
+  --color-line: #e5e5e5;
+  --color-accent: #234e49;
+  --color-wash: #edf2ee;
+  --color-error: #a23832;
+  --font-serif: Georgia, "Times New Roman", serif;
+}
+
+body {
+  @apply bg-paper text-ink antialiased;
+}
