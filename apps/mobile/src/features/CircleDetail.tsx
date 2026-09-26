@@ -1,3 +1,4 @@
+import { JourneyCoach } from "@/components/JourneyCoach";
 import { PeoplePath } from "@/components/PeoplePath";
 import { useState } from "react";
 import { Share, View } from "react-native";
@@ -59,6 +60,7 @@ export default function CircleDetail() {
       refreshing={q.isRefetching}
       onRefresh={() => q.refetch()}
     >
+      <JourneyCoach screen="circles" />
       <Row
         style={{ justifyContent: "space-between", alignItems: "flex-start" }}
       >

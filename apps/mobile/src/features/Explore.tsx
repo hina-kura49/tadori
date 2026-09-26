@@ -1,3 +1,6 @@
+import { JourneyCoach } from "@/components/JourneyCoach";
+import { useJourney } from "@/hooks/useJourney";
+import { firstPaths } from "@/lib/journey";
 import { AppHeader } from "@/components/AppHeader";
 import { useState } from "react";
 import { View, TextInput, ScrollView } from "react-native";
@@ -19,12 +22,20 @@ import { RoadmapCard } from "@/components/RoadmapCard";
 import { colors as c } from "@/lib/theme";
 export default function Explore() {
   const q = useTadori();
+  const tour = useJourney();
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All");
   if (q.isPending) return <Loading />;
   if (!q.data) return <DataError retry={() => q.refetch()} />;
   const d = q.data;
-  const found = d.roadmaps.filter(
+  const candidates =
+    tour.ready &&
+    tour.state.stage === "explore" &&
+    !search &&
+    category === "All"
+      ? firstPaths(d.roadmaps, d.profile.interests)
+      : d.roadmaps;
+  const found = candidates.filter(
     (r) =>
       r.visibility === "PUBLIC" &&
       (category === "All" || r.category === category) &&
@@ -38,6 +49,7 @@ export default function Explore() {
         title="Explore"
         description="どこへ向かうか。どの道を辿るか。"
       />
+      <JourneyCoach screen="explore" />
       <Row
         style={{
           borderWidth: 1,

@@ -1,3 +1,4 @@
+import { JourneyCoach } from "@/components/JourneyCoach";
 import { AppHeader } from "@/components/AppHeader";
 import { Pressable, View } from "react-native";
 import { router } from "expo-router";
@@ -49,6 +50,7 @@ export default function Circles() {
           </IconButton>
         }
       />
+      <JourneyCoach screen="circles" />
       {circles.map((circle) => {
         const roadmap = d.roadmaps.find((r) => r.id === circle.targetId);
         const book = d.books.find(

@@ -1,3 +1,4 @@
+import { JourneyCoach } from "@/components/JourneyCoach";
 import { AppHeader } from "@/components/AppHeader";
 import { FirstPath } from "@/components/FirstPath";
 import { PathRail, PathNode } from "@/components/Path";
@@ -207,6 +208,7 @@ export default function Today() {
               />
             </View>
           </Card>
+          <JourneyCoach screen="today" />
           {next && (
             <Pressable
               accessibilityRole="button"

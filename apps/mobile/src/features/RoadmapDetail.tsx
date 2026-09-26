@@ -1,3 +1,4 @@
+import { useJourney } from "@/hooks/useJourney";
 import { Pressable, Share, View } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import {
@@ -34,7 +35,9 @@ import { useState } from "react";
 export default function RoadmapDetail() {
   const { slug } = useLocalSearchParams<{ slug: string }>();
   const q = useTadori();
+  const tour = useJourney();
   const enroll = useAction(repository.enroll);
+  const primary = useAction(repository.setPrimary);
   const [error, setError] = useState<unknown>();
   if (q.isPending) return <Loading />;
   if (!q.data) return <DataError retry={() => q.refetch()} />;
@@ -119,17 +122,19 @@ export default function RoadmapDetail() {
             </Txt>
           </>
         )}
-        <ErrorMessage error={enroll.error || error} />
+        <ErrorMessage error={enroll.error || tour.error || error} />
         <Button
           title={
             s.complete
               ? "Roadmap completed"
               : e
                 ? "Continue Roadmap"
-                : "Start Roadmap"
+                : tour.state.stage === "explore"
+                  ? "Start this path"
+                  : "Start Roadmap"
           }
           disabled={s.complete}
-          loading={enroll.isPending}
+          loading={enroll.isPending || primary.isPending || tour.busy}
           onPress={async () => {
             if (!d.profile.onboarded) {
               router.push("/onboarding");
@@ -137,8 +142,18 @@ export default function RoadmapDetail() {
             }
             try {
               if (!e) await enroll.mutateAsync(r.id);
-              open(Math.max(0, s.index));
-            } catch {}
+              if (tour.state.stage === "explore") {
+                await primary.mutateAsync(r.id);
+                await tour.set({
+                  ...tour.state,
+                  stage: "today",
+                  roadmapId: r.id,
+                });
+                router.replace("/");
+              } else open(Math.max(0, s.index));
+            } catch (err) {
+              setError(err);
+            }
           }}
         />
       </View>

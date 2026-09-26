@@ -1,16 +1,11 @@
+import { existingUser } from "./fixtures";
 import { test, expect } from "@playwright/test";
 test("each tab expresses a path; reading edits are explicit and sharing previews real data", async ({
   page,
 }) => {
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
-  await page.goto("/");
-  await page.getByRole("textbox", { name: "Name", exact: true }).fill("Hinata");
-  await page
-    .getByRole("textbox", { name: "Username", exact: true })
-    .fill("hinata");
-  await page.getByRole("button", { name: "Engineering", exact: true }).click();
-  await page.getByRole("button", { name: "学びの道を見つける" }).click();
+  await existingUser(page, "Hinata", "hinata", "Engineering");
   await expect(page.getByText("Curated paths")).toBeVisible();
   await page.screenshot({ path: "../../artifacts/explore-path.png" });
   await page.goto("/");

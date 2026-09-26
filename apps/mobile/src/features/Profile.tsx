@@ -1,3 +1,4 @@
+import { JourneyCoach } from "@/components/JourneyCoach";
 import { AppHeader } from "@/components/AppHeader";
 import { ProfileAvatarEditor } from "@/components/ProfileAvatarEditor";
 import { LearningTerrain } from "@/components/LearningTerrain";
@@ -118,6 +119,7 @@ export default function Profile() {
         </Txt>
       </View>
       <LearningTerrain data={d} animate />
+      {!username && <JourneyCoach screen="me" />}
       {!booksDone && !completed.length ? (
         <View
           style={{

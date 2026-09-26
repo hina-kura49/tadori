@@ -1,16 +1,11 @@
+import { existingUser } from "./fixtures";
 import { test, expect } from "@playwright/test";
-test("onboard, start a path, update progress, finish, and restore after reload", async ({
+test("start a path, update progress, finish, and restore after reload", async ({
   page,
 }) => {
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
-  await page.goto("/");
-  await page.getByRole("textbox", { name: "Name", exact: true }).fill("Hinata");
-  await page
-    .getByRole("textbox", { name: "Username", exact: true })
-    .fill("hinata");
-  await page.getByRole("button", { name: "Engineering", exact: true }).click();
-  await page.getByRole("button", { name: "学びの道を見つける" }).click();
+  await existingUser(page, "Hinata", "hinata", "Engineering");
   await page
     .getByRole("button", {
       name: "Backend Engineering Foundations",
@@ -61,13 +56,7 @@ test("onboard, start a path, update progress, finish, and restore after reload",
 test("create a roadmap with checkpoints, reorder books, and create a circle", async ({
   page,
 }) => {
-  await page.goto("/");
-  await page.getByRole("textbox", { name: "Name", exact: true }).fill("Yuki");
-  await page
-    .getByRole("textbox", { name: "Username", exact: true })
-    .fill("yuki_test");
-  await page.getByRole("button", { name: "Product", exact: true }).click();
-  await page.getByRole("button", { name: "学びの道を見つける" }).click();
+  await existingUser(page, "Yuki", "yuki_test", "Product");
   await page.goto("/roadmaps/new");
   await page
     .getByRole("textbox", { name: "Title", exact: true })
@@ -144,8 +133,15 @@ test("create a roadmap with checkpoints, reorder books, and create a circle", as
 test("onboarding explains invalid usernames and the primary action has a visible touch target", async ({
   page,
 }) => {
-  await page.goto("/");
-  const button = page.getByRole("button", { name: "学びの道を見つける" });
+  await existingUser(page, "Learner", "learner_test", "Engineering");
+  await page.evaluate(() =>
+    localStorage.setItem(
+      "tadori.journey.v1",
+      JSON.stringify({ stage: "me", needsName: true, needsUsername: true }),
+    ),
+  );
+  await page.goto("/me");
+  const button = page.getByRole("button", { name: "Continue to Today" });
   await expect(button).toHaveCSS("background-color", "rgb(35, 78, 73)");
   expect((await button.boundingBox())!.height).toBeGreaterThanOrEqual(48);
   await page
@@ -154,16 +150,17 @@ test("onboarding explains invalid usernames and the primary action has a visible
   await page
     .getByRole("textbox", { name: "Username", exact: true })
     .fill("くら");
-  await page.getByRole("button", { name: "Engineering", exact: true }).click();
   await button.click();
   await expect(
-    page.getByText("Username：3文字以上で入力してください"),
+    page.getByText("3文字以上で入力してください", { exact: true }),
   ).toBeVisible();
   await page
     .getByRole("textbox", { name: "Username", exact: true })
     .fill("kurashina");
   await button.click();
-  await expect(page.getByText("Curated paths")).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "最初のRoadmapを選ぶ", exact: true }),
+  ).toBeVisible();
 });
 
 test("user registers a book with their own image; external covers are never requested", async ({
@@ -173,13 +170,7 @@ test("user registers a book with their own image; external covers are never requ
   page.on("request", (r) => {
     if (r.resourceType() === "image") imageRequests.push(r.url());
   });
-  await page.goto("/");
-  await page.getByRole("textbox", { name: "Name", exact: true }).fill("Reader");
-  await page
-    .getByRole("textbox", { name: "Username", exact: true })
-    .fill("reader");
-  await page.getByRole("button", { name: "Design", exact: true }).click();
-  await page.getByRole("button", { name: "学びの道を見つける" }).click();
+  await existingUser(page, "Reader", "reader", "Design");
   await page.goto("/roadmaps/new");
   await page
     .getByRole("textbox", { name: "Title", exact: true })
