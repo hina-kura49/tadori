@@ -8,29 +8,43 @@
 
 ## Run
 
-Node.js 22以上（開発確認：24）、npm、iOS SimulatorまたはAndroid Emulatorを使用します。
+Node.js 22以上（開発確認：24）、pnpm 10、iOS SimulatorまたはAndroid Emulatorを使用します。
+リポジトリはpnpmワークスペースで、`apps/mobile`（Expo）・`apps/web`（Vite + React）・`apps/api`（Hono）をまとめて管理します。
 
 ```sh
-npm install
-npm start
+pnpm install
+pnpm start
 # iOS: Expoのターミナルで i、Android: a
-# Webプレビュー
-npm run web
-# ポート指定
-npm run web -w apps/mobile -- --port 8087
+# ExpoのWebプレビュー（ポート指定）
+pnpm --filter @tadori/mobile web -- --port 8087
 ```
+
+### Web版（apps/web）
+
+ブラウザ向けのWeb版です。APIへは同じオリジンの `/_api` を経由して繋ぎ、ログインはCookieで保持します。
+
+```sh
+# ローカルのPostgres（Docker）に繋いだAPIを http://localhost:4000 で起動
+./scripts/local-api.sh --seed   # 初回だけ --seed でサンプルデータも入れる
+# 別のターミナルで Web を http://localhost:5173 で起動（/_api を localhost:4000 へ中継）
+pnpm web
+```
+
+`apps/api/.env` が本番DBを指していても、`scripts/local-api.sh` はDBの接続先をローカルへ上書きします。
+本番はCloudflare Pagesで配信し、`apps/web/functions/_api/[[path]].ts` がRenderのAPIへ中継します（[手順](docs/web/deployment.md)）。
 
 Expo SDK 55に対応するExpo Go、またはdevelopment buildで開いてください。今回の確認環境では、XcodeのシミュレーターGUIはDeviceHubという名称です。
 
 初回起動でName・Username・興味カテゴリを設定します。Nameは日本語対応、Usernameは半角英小文字・数字・`_`の3〜24文字です。Explore → Roadmap → Start Roadmapで開始できます。初期状態では学習を勝手に開始しません。
 
 ```sh
-npm run typecheck
-npm test
-npm run build                 # Web production export
+pnpm typecheck                # 全アプリ
+pnpm test
+pnpm --filter @tadori/mobile build   # ExpoのWeb production export
+pnpm --filter @tadori/web build      # Web版
 # 開発サーバーを8087で起動した状態で、Chromeを利用する操作テスト
 cd apps/mobile
-npx playwright test
+pnpm exec playwright test
 ```
 
 ## Directory Structure

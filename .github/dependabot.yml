@@ -1,0 +1,24 @@
+# 依存関係の更新を週1回まとめてプルリクエストにする
+version: 2
+updates:
+  - package-ecosystem: npm # pnpm の lockfile もこれで扱える
+    directory: /
+    schedule:
+      interval: weekly
+      timezone: Asia/Tokyo
+    open-pull-requests-limit: 5
+    groups:
+      minor-and-patch:
+        update-types: [minor, patch]
+    ignore:
+      # Expo SDK と組で決まるものは `pnpm --filter @tadori/mobile exec expo install --fix` で上げる
+      - dependency-name: "expo*"
+      - dependency-name: "@expo/*"
+      - dependency-name: "react-native*"
+      - dependency-name: "@react-native*"
+      - dependency-name: react
+      - dependency-name: react-dom
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly

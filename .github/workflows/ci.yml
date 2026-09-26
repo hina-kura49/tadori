@@ -1,0 +1,48 @@
+# push とプルリクエストのたびに、全アプリの型チェック・テスト・ビルドを回す
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    services:
+      # apps/api のテストは実 PostgreSQL に対して動く (tests/helpers/global-setup.ts)
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: tadori
+          POSTGRES_PASSWORD: tadori
+          POSTGRES_DB: postgres
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U tadori"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      TEST_DATABASE_URL: postgres://tadori:tadori@localhost:5432/tadori_test
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm typecheck
+      - run: pnpm test
+      - name: Web のビルド
+        run: pnpm --filter @tadori/web build
+
+  api-image:
+    # Render で使う Docker イメージがビルドできるかだけ確かめる (push はしない)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - run: docker build -f apps/api/Dockerfile -t tadori-api .

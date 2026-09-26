@@ -27,7 +27,7 @@ export NODE_ENV=development
 export DATABASE_URL="$LOCAL_DB"
 export DATABASE_MIGRATION_URL="$LOCAL_DB"
 export BETTER_AUTH_URL="http://localhost:4000"
-export CORS_ORIGIN="http://localhost:5173,http://localhost:8081"
+export CORS_ORIGIN="http://localhost:5173,http://localhost:8788,http://localhost:8081"
 export AUTH_EMAIL_PASSWORD_ENABLED=true
 
 cd "$(dirname "$0")/../apps/api"

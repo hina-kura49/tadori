@@ -11,19 +11,22 @@ iPhoneには公開APIを使うRelease版を上書きインストール・起動�
 リポジトリルートから実行:
 
 ```sh
-docker build -t tadori-api ./apps/api
+docker build -f apps/api/Dockerfile -t tadori-api .
 ```
 
+ビルドコンテキストはリポジトリルート。pnpmワークスペースのロックファイル（ルートの `pnpm-lock.yaml`）から `@tadori/api` の依存関係だけを入れる。
 Node.js 24とロックファイルに固定した依存関係を使い、型チェックしてから起動する。
 APIのTypeScript実行にtsxが必要なため、現在はdevDependenciesもインストールする。
 コンテナは非rootのnodeユーザーで実行する。
-`.dockerignore` の許可リストで `.env`、テストデータ、端末データをビルド対象から除外する。
-Supabaseの公開CA証明書を同梱し、`sslrootcert=./certs/supabase-ca-2021.crt` は `/app` から解決する。
+ルートの `.dockerignore` の許可リストで `.env`、テストデータ、端末データをビルド対象から除外する。
+Supabaseの公開CA証明書を同梱し、`sslrootcert=./certs/supabase-ca-2021.crt` は作業ディレクトリ `/repo/apps/api` から解決する。
 
 ## ホスティング設定
 
-- Build context / Root Directory: `apps/api`
-- Dockerfile: `Dockerfile`
+- Root Directory: 空欄（リポジトリルート）
+- Docker Build Context: `.`
+- Dockerfile Path: `./apps/api/Dockerfile`
+- 2026-09-26にpnpmワークスペースへ移行した。既存サービスの設定（Root Directory `apps/api`）は管理画面で上の値へ変更してから次のデプロイを行う
 - Health check: `/health`（プロセスの稼働確認。DB接続は別途確認する）
 - ポート: 環境変数 `PORT`、未指定なら4000
 - インスタンス: Freeを1台。15分アクセスがないと休止し、復帰に時間がかかる。会合通知のスケジューラは休止中動かない。端末のローカル通知とは別

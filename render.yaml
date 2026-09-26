@@ -4,9 +4,13 @@ services:
     runtime: docker
     plan: free
     region: virginia
-    rootDir: apps/api
-    dockerfilePath: ./Dockerfile
+    # pnpm ワークスペースのロックファイルを使うため、リポジトリのルートからビルドする
+    dockerfilePath: ./apps/api/Dockerfile
     dockerContext: .
+    buildFilter:
+      paths:
+        - apps/api/**
+        - pnpm-lock.yaml
     healthCheckPath: /health
     autoDeployTrigger: off
     envVars:

@@ -9,3 +9,4 @@ playwright-report/
 # expo prebuild / expo run:* が生成するネイティブプロジェクト (app.json から再生成できる)
 apps/mobile/ios/
 apps/mobile/android/
+.wrangler/
