@@ -1,6 +1,13 @@
 import type { CircleMemberRole, UserRoadmapStatus } from "../db/schema";
 import type { BookSummaryDto } from "./book.dto";
-import type { CircleMemberDto, CircleScheduleDto, CircleSummaryDto } from "./circle.dto";
+import type {
+  CircleMemberDto,
+  CircleMemberProgressDto,
+  CircleScheduleDto,
+  CircleSummaryDto,
+} from "./circle.dto";
+
+export type { CircleMemberProgressDto } from "./circle.dto";
 import type { NotificationPreferenceDto } from "./notification.dto";
 import type { RoadmapStepDto, RoadmapSummaryDto, StepProgressDto } from "./roadmap.dto";
 import type { CurrentUserDto } from "./user.dto";
@@ -17,14 +24,6 @@ export type DashboardUserRoadmapDto = {
   startedAt: string | null;
   completedAt: string | null;
   steps: StepProgressDto[];
-};
-
-/** Circle の対象 (Roadmap / Book) に対するメンバーの現在地 */
-export type CircleMemberProgressDto = {
-  /** 0 始まり。Roadmap Circle では「いま何冊目か」、Book Circle では常に 0 */
-  stepIndex: number;
-  /** その Step (本) の進捗。0〜100 */
-  percentage: number;
 };
 
 export type DashboardCircleMemberDto = CircleMemberDto & {

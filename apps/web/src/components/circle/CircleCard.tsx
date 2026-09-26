@@ -12,6 +12,9 @@ type CircleSummary = {
   targetEndDate: string | null;
   maxMembers: number;
   memberCount: number;
+  target:
+    | { type: "BOOK"; book: { title: string } }
+    | { type: "ROADMAP"; roadmap: { title: string } };
 };
 
 /** 一覧に並べるサークルのカード */
@@ -20,15 +23,17 @@ export function CircleCard({ circle }: { circle: CircleSummary }) {
   return (
     <Link
       to={`/circles/${circle.id}`}
-      className="group block overflow-hidden rounded-2xl border border-line bg-white transition-colors hover:border-accent/40"
+      className="group flex flex-col overflow-hidden rounded-2xl border border-line bg-white transition-colors hover:border-accent/40"
     >
-      <div className="space-y-3 p-5">
+      <div className="flex-1 space-y-3 p-5">
         <div className="flex items-center justify-between gap-3 text-xs text-muted">
-          <span className="inline-flex items-center gap-1.5">
-            <TargetIcon size={14} className="text-accent" />
-            {targetTypeLabel(circle.targetType)}を一緒に
+          <span className="inline-flex min-w-0 items-center gap-1.5">
+            <TargetIcon size={14} className="shrink-0 text-accent" />
+            <span className="truncate">
+              {targetTypeLabel(circle.targetType)}「{circle.target.type === "BOOK" ? circle.target.book.title : circle.target.roadmap.title}」を一緒に
+            </span>
           </span>
-          <span className="rounded-full bg-wash px-2.5 py-0.5 text-[11px] text-accent">
+          <span className="shrink-0 rounded-full bg-wash px-2.5 py-0.5 text-[11px] text-accent">
             {visibilityLabel(circle.visibility)}
           </span>
         </div>

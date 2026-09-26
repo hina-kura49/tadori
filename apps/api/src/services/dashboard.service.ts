@@ -1,7 +1,6 @@
 import { toBookSummaryDto } from "../dto/book.dto";
 import { toCircleScheduleDto, toCircleSummaryDto } from "../dto/circle.dto";
 import type {
-  CircleMemberProgressDto,
   DashboardCircleDto,
   DashboardDto,
   DashboardRoadmapDto,
@@ -11,12 +10,12 @@ import { toRoadmapStepDto, toRoadmapSummaryDto } from "../dto/roadmap.dto";
 import { toUserSummaryDto } from "../dto/user.dto";
 import * as bookRepository from "../repositories/book.repository";
 import * as circleRepository from "../repositories/circle.repository";
-import type { CircleSummaryRow } from "../repositories/circle.repository";
 import * as roadmapRepository from "../repositories/roadmap.repository";
 import * as userRoadmapRepository from "../repositories/user-roadmap.repository";
 import type { AuthUser } from "../types/app";
 import * as notificationPreferenceService from "./notification-preference.service";
-import { stepPercentage, toStepProgressDto } from "./progress.service";
+import { buildMemberProgress } from "./circle.service";
+import { toStepProgressDto } from "./progress.service";
 import * as userService from "./user.service";
 
 // GET /me/dashboard の組み立て。
@@ -119,61 +118,4 @@ export async function getDashboard(user: AuthUser): Promise<DashboardDto> {
   );
 
   return { user: currentUser, roadmaps, userRoadmaps, books, circles, notificationPreferences };
-}
-
-/**
- * 自分が参加している Circle について、メンバーごとの現在地を求める。
- * 戻り値の key は `${circleId}:${userId}`。対象を始めていないメンバーは含まれない。
- */
-async function buildMemberProgress(
-  myCircles: CircleSummaryRow[],
-): Promise<Map<string, CircleMemberProgressDto>> {
-  const result = new Map<string, CircleMemberProgressDto>();
-  if (myCircles.length === 0) return result;
-
-  const memberRows = await circleRepository.listMembersByCircleIds(myCircles.map((c) => c.id));
-  const memberIds = [...new Set(memberRows.map((member) => member.user.id))];
-  const memberIdsByCircleId = Map.groupBy(memberRows, (member) => member.circleId);
-
-  // Roadmap Circle: 各メンバーの「最初の未完了 Step」とその進捗
-  const roadmapIds = myCircles.flatMap((circle) => (circle.roadmapId ? [circle.roadmapId] : []));
-  const memberUserRoadmaps = await userRoadmapRepository.listUserRoadmapsOfUsers(
-    memberIds,
-    roadmapIds,
-  );
-  const progressRows = await userRoadmapRepository.listStepsWithProgress(
-    memberUserRoadmaps.map((userRoadmap) => userRoadmap.id),
-  );
-  const stepsByUserRoadmapId = Map.groupBy(progressRows, (row) => row.userRoadmapId);
-
-  // Book Circle: その Book に付けた進捗のうち最大のもの
-  const bookIds = myCircles.flatMap((circle) => (circle.bookId ? [circle.bookId] : []));
-  const bookProgressRows = await userRoadmapRepository.listBookProgressOfUsers(memberIds, bookIds);
-
-  for (const circle of myCircles) {
-    for (const member of memberIdsByCircleId.get(circle.id) ?? []) {
-      const key = `${circle.id}:${member.user.id}`;
-
-      if (circle.roadmapId) {
-        const userRoadmap = memberUserRoadmaps.find(
-          (row) => row.userId === member.user.id && row.roadmapId === circle.roadmapId,
-        );
-        const steps = userRoadmap ? (stepsByUserRoadmapId.get(userRoadmap.id) ?? []) : [];
-        if (steps.length === 0) continue;
-        const currentIndex = steps.findIndex((step) => step.status !== "COMPLETED");
-        const stepIndex = currentIndex === -1 ? steps.length - 1 : currentIndex;
-        const step = steps[stepIndex];
-        if (step) result.set(key, { stepIndex, percentage: stepPercentage(step) });
-        continue;
-      }
-
-      const percentages = bookProgressRows
-        .filter((row) => row.userId === member.user.id && row.bookId === circle.bookId)
-        .map(stepPercentage);
-      if (percentages.length > 0) {
-        result.set(key, { stepIndex: 0, percentage: Math.max(...percentages) });
-      }
-    }
-  }
-  return result;
 }

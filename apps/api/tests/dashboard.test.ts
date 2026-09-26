@@ -114,7 +114,7 @@ describe("GET /me/dashboard", () => {
     });
     expect(progressOf(asMember.body)).toEqual({
       alice: null, // まだ Roadmap を始めていない
-      bob: { stepIndex: 1, percentage: 25 },
+      bob: { stepIndex: 1, percentage: 25, completedSteps: 1 },
     });
 
     const asOutsider = await api("GET", "/me/dashboard", { as: carol });

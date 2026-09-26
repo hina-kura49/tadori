@@ -45,9 +45,15 @@ describe("Circle create", () => {
     });
 
     expect(response.status).toBe(201);
-    expect(response.body.target).toEqual({
+    expect(response.body.target).toMatchObject({
       type: "ROADMAP",
       roadmap: { id: roadmap.id, slug: roadmap.slug, title: roadmap.title },
+    });
+    // 詳細ではメンバーの現在地を描けるよう Step も返す
+    expect(response.body.target.roadmap.steps).toHaveLength(1);
+    expect(response.body.target.roadmap.steps[0]).toMatchObject({
+      position: 1,
+      book: { title: "Book 1" },
     });
   });
 
@@ -326,5 +332,98 @@ describe("Circle schedules", () => {
       body: "Soon",
       data: { type: "CIRCLE_MEETING_REMINDER" },
     });
+  });
+});
+
+describe("Circle の対象とメンバーの進捗", () => {
+  it("一覧 (GET /circles, GET /me/circles) の各 Circle に対象の概要が付く", async () => {
+    const alice = await createUser("alice");
+    const roadmap = await createRoadmap(alice, { stepCount: 1, title: "分散システムへの道" });
+    await createBookCircle(alice);
+    await api("POST", "/circles", {
+      as: alice,
+      json: { name: "Roadmap 会", targetType: "ROADMAP", roadmapId: roadmap.id },
+    });
+
+    type Item = { name: string; target: unknown };
+    const targetsOf = (items: Item[]) =>
+      Object.fromEntries(items.map((item) => [item.name, item.target]));
+    const expected = {
+      "DB 設計を読む会": expect.objectContaining({
+        type: "BOOK",
+        book: expect.objectContaining({ title: "Circle Book" }),
+      }),
+      "Roadmap 会": {
+        type: "ROADMAP",
+        roadmap: { id: roadmap.id, slug: roadmap.slug, title: "分散システムへの道" },
+      },
+    };
+
+    const all = await api("GET", "/circles");
+    expect(targetsOf(all.body.items)).toEqual(expected);
+    const mine = await api("GET", "/me/circles", { as: alice });
+    expect(targetsOf(mine.body.items)).toEqual(expected);
+  });
+
+  it("Roadmap Circle の詳細で、メンバーの進捗は参加者にだけ見える", async () => {
+    const alice = await createUser("alice");
+    const bob = await createUser("bob");
+    const carol = await createUser("carol");
+    const roadmap = await createRoadmap(alice, { stepCount: 3 });
+    const circle = await api("POST", "/circles", {
+      as: alice,
+      json: { name: "Together", targetType: "ROADMAP", roadmapId: roadmap.id },
+    });
+    await api("POST", `/circles/${circle.body.id}/join`, { as: bob });
+
+    // bob: 1 冊目を完了し、2 冊目を 60% まで進めた
+    const started = await api("POST", `/roadmaps/${roadmap.id}/start`, { as: bob });
+    const base = `/me/roadmaps/${started.body.userRoadmapId}/steps`;
+    await api("PATCH", `${base}/${roadmap.steps[0]?.id}`, { as: bob, json: { status: "COMPLETED" } });
+    await api("PATCH", `${base}/${roadmap.steps[1]?.id}`, {
+      as: bob,
+      json: { progressType: "PERCENTAGE", progressValue: "60" },
+    });
+
+    type Member = { user: { username: string }; progress: unknown };
+    const progressOf = (members: Member[]) =>
+      Object.fromEntries(members.map((m) => [m.user.username, m.progress]));
+
+    const asMember = await api("GET", `/circles/${circle.body.id}`, { as: alice });
+    expect(asMember.body.target.roadmap.steps).toHaveLength(3);
+    expect(progressOf(asMember.body.members)).toEqual({
+      alice: null, // まだ Roadmap を始めていない
+      bob: { stepIndex: 1, percentage: 60, completedSteps: 1 },
+    });
+
+    // PUBLIC なので誰でも見られるが、参加していない人・未ログインには進捗を出さない
+    const asOutsider = await api("GET", `/circles/${circle.body.id}`, { as: carol });
+    expect(progressOf(asOutsider.body.members)).toEqual({ alice: null, bob: null });
+    const anonymous = await api("GET", `/circles/${circle.body.id}`);
+    expect(progressOf(anonymous.body.members)).toEqual({ alice: null, bob: null });
+  });
+
+  it("Book Circle では、その本に付けた進捗を返す (どの Roadmap 経由でもよい)", async () => {
+    const alice = await createUser("alice");
+    const bob = await createUser("bob");
+    const roadmap = await createRoadmap(alice, { stepCount: 1 });
+    const bookId = roadmap.steps[0]?.book.id;
+    const circle = await api("POST", "/circles", {
+      as: alice,
+      json: { name: "輪読会", targetType: "BOOK", bookId },
+    });
+    await api("POST", `/circles/${circle.body.id}/join`, { as: bob });
+
+    const started = await api("POST", `/roadmaps/${roadmap.id}/start`, { as: bob });
+    await api("PATCH", `/me/roadmaps/${started.body.userRoadmapId}/steps/${roadmap.steps[0]?.id}`, {
+      as: bob,
+      json: { status: "COMPLETED" },
+    });
+
+    const detail = await api("GET", `/circles/${circle.body.id}`, { as: alice });
+    const bobMember = detail.body.members.find(
+      (m: { user: { username: string } }) => m.user.username === "bob",
+    );
+    expect(bobMember.progress).toEqual({ stepIndex: 0, percentage: 100, completedSteps: 1 });
   });
 });

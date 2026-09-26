@@ -5,6 +5,7 @@ import { ApiError } from "@/api/client";
 import { Avatar } from "@/components/Avatar";
 import { ConfirmButton } from "@/components/circle/ConfirmButton";
 import { InviteForm } from "@/components/circle/InviteForm";
+import { PeoplePath } from "@/components/circle/PeoplePath";
 import { ScheduleSection } from "@/components/circle/ScheduleSection";
 import { Button, ButtonLink, Card, Empty, ErrorMessage, Label, Loading, Page } from "@/components/ui";
 import { useCircle, useCircleActions } from "@/hooks/circle/useCircles";
@@ -66,6 +67,8 @@ export default function CircleDetail() {
       <div className="space-y-5">
         <TargetCard target={circle.target} />
 
+        <PeoplePath target={circle.target} members={circle.members} joined={joined} />
+
         <ScheduleSection
           circleId={circle.id}
           schedules={circle.schedules}
@@ -79,17 +82,19 @@ export default function CircleDetail() {
             <Label>Members</Label>
             <span className="text-xs text-muted">{circle.memberCount} / {circle.maxMembers}</span>
           </div>
-          <ul className="grid grid-cols-3 gap-4 sm:grid-cols-5">
-            {circle.members.map((m) => (
-              <li key={m.user.id}>
-                <Link to={`/profile/${m.user.username}`} className="flex flex-col items-center gap-1.5 text-center hover:opacity-80">
-                  <Avatar name={m.user.name} url={m.user.avatarUrl} />
-                  <span className="w-full truncate text-xs">{m.user.name}</span>
-                  {m.role === "OWNER" && <span className="text-[10px] text-accent">オーナー</span>}
-                </Link>
-              </li>
-            ))}
-          </ul>
+          {!joined && (
+            <ul className="grid grid-cols-3 gap-4 sm:grid-cols-5">
+              {circle.members.map((m) => (
+                <li key={m.user.id}>
+                  <Link to={`/profile/${m.user.username}`} className="flex flex-col items-center gap-1.5 text-center hover:opacity-80">
+                    <Avatar name={m.user.name} url={m.user.avatarUrl} />
+                    <span className="w-full truncate text-xs">{m.user.name}</span>
+                    {m.role === "OWNER" && <span className="text-[10px] text-accent">オーナー</span>}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
           {isOwner && <div className="border-t border-line pt-4"><InviteForm circleId={circle.id} /></div>}
         </Card>
 
@@ -134,7 +139,7 @@ export default function CircleDetail() {
 
 type Target =
   | { type: "BOOK"; book: { id: string; title: string; author: string; coverImageUrl: string | null } }
-  | { type: "ROADMAP"; roadmap: { id: string; slug: string; title: string } };
+  | { type: "ROADMAP"; roadmap: { id: string; slug: string; title: string; steps: unknown[] } };
 
 /** 一緒に学ぶ対象 (本 or ロードマップ) */
 function TargetCard({ target }: { target: Target }) {
@@ -165,7 +170,7 @@ function TargetCard({ target }: { target: Target }) {
       <div className="min-w-0 space-y-1">
         <Label>Roadmap</Label>
         <p className="text-lg leading-snug font-medium">{target.roadmap.title}</p>
-        <p className="text-xs text-accent">ロードマップを見る →</p>
+        <p className="text-xs text-accent">{target.roadmap.steps.length}冊の道のり · ロードマップを見る →</p>
       </div>
     </Link>
   );

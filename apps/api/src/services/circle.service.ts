@@ -1,9 +1,12 @@
 import { db, type DbExecutor } from "../db/client";
 import { toBookSummaryDto } from "../dto/book.dto";
+import { toRoadmapStepDto } from "../dto/roadmap.dto";
 import {
   type CircleDetailDto,
+  type CircleDetailTargetDto,
+  type CircleListItemDto,
+  type CircleMemberProgressDto,
   type CircleScheduleDto,
-  type CircleSummaryDto,
   type CircleTargetDto,
   toCircleMemberDto,
   toCircleScheduleDto,
@@ -20,8 +23,9 @@ import {
 import { canViewRoadmap } from "../policies/roadmap.policy";
 import * as bookRepository from "../repositories/book.repository";
 import * as circleRepository from "../repositories/circle.repository";
-import type { CircleRow } from "../repositories/circle.repository";
+import type { CircleRow, CircleSummaryRow } from "../repositories/circle.repository";
 import * as roadmapRepository from "../repositories/roadmap.repository";
+import * as userRoadmapRepository from "../repositories/user-roadmap.repository";
 import * as userRepository from "../repositories/user.repository";
 import type {
   CreateCircleInput,
@@ -33,6 +37,7 @@ import type {
 } from "../schemas/circle.schema";
 import type { AuthUser } from "../types/app";
 import * as notificationService from "./notification.service";
+import { stepPercentage } from "./progress.service";
 
 // ---------------------------------------------------------------------------
 // 共通
@@ -59,17 +64,25 @@ async function getCircleAsOwner(circleId: string, user: AuthUser): Promise<Circl
   return circle;
 }
 
-async function buildTargetDto(circle: CircleRow): Promise<CircleTargetDto> {
+async function buildTargetDto(circle: CircleRow): Promise<CircleDetailTargetDto> {
   if (circle.targetType === "BOOK" && circle.bookId) {
     const book = await bookRepository.findBookById(circle.bookId);
     if (book) return { type: "BOOK", book: toBookSummaryDto(book) };
   }
   if (circle.targetType === "ROADMAP" && circle.roadmapId) {
-    const roadmap = await roadmapRepository.findRoadmapById(circle.roadmapId);
+    const [roadmap, steps] = await Promise.all([
+      roadmapRepository.findRoadmapById(circle.roadmapId),
+      roadmapRepository.listSteps(circle.roadmapId),
+    ]);
     if (roadmap) {
       return {
         type: "ROADMAP",
-        roadmap: { id: roadmap.id, slug: roadmap.slug, title: roadmap.title },
+        roadmap: {
+          id: roadmap.id,
+          slug: roadmap.slug,
+          title: roadmap.title,
+          steps: steps.map(toRoadmapStepDto),
+        },
       };
     }
   }
@@ -77,12 +90,99 @@ async function buildTargetDto(circle: CircleRow): Promise<CircleTargetDto> {
   throw new Error(`Circle ${circle.id} has no valid target`);
 }
 
+/** 一覧の各 Circle に対象の概要を付ける。Book / Roadmap はそれぞれ 1 クエリでまとめて引く */
+async function withTargets(rows: CircleSummaryRow[]): Promise<CircleListItemDto[]> {
+  const bookIds = [...new Set(rows.flatMap((row) => (row.bookId ? [row.bookId] : [])))];
+  const roadmapIds = [...new Set(rows.flatMap((row) => (row.roadmapId ? [row.roadmapId] : [])))];
+  const [bookRows, roadmapRows] = await Promise.all([
+    bookRepository.findBooksByIds(bookIds),
+    roadmapRepository.listRoadmapSummaries({ ids: roadmapIds, limit: roadmapIds.length }),
+  ]);
+  const booksById = new Map(bookRows.map((book) => [book.id, book]));
+  const roadmapsById = new Map(roadmapRows.map((roadmap) => [roadmap.id, roadmap]));
+
+  return rows.flatMap((row) => {
+    let target: CircleTargetDto | null = null;
+    const book = row.bookId ? booksById.get(row.bookId) : undefined;
+    const roadmap = row.roadmapId ? roadmapsById.get(row.roadmapId) : undefined;
+    if (book) target = { type: "BOOK", book: toBookSummaryDto(book) };
+    if (roadmap) {
+      target = {
+        type: "ROADMAP",
+        roadmap: { id: roadmap.id, slug: roadmap.slug, title: roadmap.title },
+      };
+    }
+    // FK と CHECK 制約があるため通常は null にならない
+    return target ? [{ ...toCircleSummaryDto(row), target }] : [];
+  });
+}
+
+/**
+ * Circle のメンバーごとの現在地を求める。
+ * 戻り値の key は `${circleId}:${userId}`。対象を始めていないメンバーは含まれない。
+ * 呼び出し側は「自分が参加している Circle」だけを渡すこと (進捗はメンバー同士でだけ共有する)。
+ */
+export async function buildMemberProgress(
+  circles: Pick<CircleRow, "id" | "roadmapId" | "bookId">[],
+): Promise<Map<string, CircleMemberProgressDto>> {
+  const result = new Map<string, CircleMemberProgressDto>();
+  if (circles.length === 0) return result;
+
+  const memberRows = await circleRepository.listMembersByCircleIds(circles.map((c) => c.id));
+  const memberIds = [...new Set(memberRows.map((member) => member.user.id))];
+  const memberIdsByCircleId = Map.groupBy(memberRows, (member) => member.circleId);
+
+  // Roadmap Circle: 各メンバーの「最初の未完了 Step」とその進捗
+  const roadmapIds = circles.flatMap((circle) => (circle.roadmapId ? [circle.roadmapId] : []));
+  const memberUserRoadmaps = await userRoadmapRepository.listUserRoadmapsOfUsers(
+    memberIds,
+    roadmapIds,
+  );
+  const progressRows = await userRoadmapRepository.listStepsWithProgress(
+    memberUserRoadmaps.map((userRoadmap) => userRoadmap.id),
+  );
+  const stepsByUserRoadmapId = Map.groupBy(progressRows, (row) => row.userRoadmapId);
+
+  // Book Circle: その Book に付けた進捗のうち最大のもの
+  const bookIds = circles.flatMap((circle) => (circle.bookId ? [circle.bookId] : []));
+  const bookProgressRows = await userRoadmapRepository.listBookProgressOfUsers(memberIds, bookIds);
+
+  for (const circle of circles) {
+    for (const member of memberIdsByCircleId.get(circle.id) ?? []) {
+      const key = `${circle.id}:${member.user.id}`;
+
+      if (circle.roadmapId) {
+        const userRoadmap = memberUserRoadmaps.find(
+          (row) => row.userId === member.user.id && row.roadmapId === circle.roadmapId,
+        );
+        const steps = userRoadmap ? (stepsByUserRoadmapId.get(userRoadmap.id) ?? []) : [];
+        if (steps.length === 0) continue;
+        const currentIndex = steps.findIndex((step) => step.status !== "COMPLETED");
+        const stepIndex = currentIndex === -1 ? steps.length - 1 : currentIndex;
+        const step = steps[stepIndex];
+        const completedSteps = steps.filter((row) => row.status === "COMPLETED").length;
+        if (step) result.set(key, { stepIndex, percentage: stepPercentage(step), completedSteps });
+        continue;
+      }
+
+      const percentages = bookProgressRows
+        .filter((row) => row.userId === member.user.id && row.bookId === circle.bookId)
+        .map(stepPercentage);
+      if (percentages.length > 0) {
+        const percentage = Math.max(...percentages);
+        result.set(key, { stepIndex: 0, percentage, completedSteps: percentage === 100 ? 1 : 0 });
+      }
+    }
+  }
+  return result;
+}
+
 // ---------------------------------------------------------------------------
 // 読み取り
 // ---------------------------------------------------------------------------
 
 /** GET /circles — PUBLIC のみ */
-export async function listPublicCircles(query: ListCirclesQuery): Promise<Page<CircleSummaryDto>> {
+export async function listPublicCircles(query: ListCirclesQuery): Promise<Page<CircleListItemDto>> {
   const rows = await circleRepository.listCircleSummaries({
     visibility: "PUBLIC",
     q: query.q,
@@ -93,13 +193,13 @@ export async function listPublicCircles(query: ListCirclesQuery): Promise<Page<C
     limit: query.limit + 1,
   });
   const page = buildPage(rows, query.limit);
-  return { items: page.items.map(toCircleSummaryDto), nextCursor: page.nextCursor };
+  return { items: await withTargets(page.items), nextCursor: page.nextCursor };
 }
 
 /** GET /me/circles — 自分が参加している Circle (INVITE_ONLY を含む) */
-export async function listMyCircles(user: AuthUser): Promise<CircleSummaryDto[]> {
+export async function listMyCircles(user: AuthUser): Promise<CircleListItemDto[]> {
   const rows = await circleRepository.listCircleSummaries({ memberUserId: user.id, limit: 100 });
-  return rows.map(toCircleSummaryDto);
+  return withTargets(rows);
 }
 
 /** GET /circles/:id */
@@ -111,16 +211,22 @@ export async function getCircleDetail(
   const viewerContext = await getViewerContext(circleId, viewer?.id ?? null);
   assertCanViewCircle(circle, viewerContext);
 
-  const [target, members, schedules] = await Promise.all([
+  // メンバーの進捗は、自分も参加している Circle でだけ共有する (dashboard と同じ)
+  const isMember = viewerContext.role !== null;
+  const [target, members, schedules, memberProgress] = await Promise.all([
     buildTargetDto(circle),
     circleRepository.listMembers(circleId),
     circleRepository.listSchedules(circleId),
+    isMember ? buildMemberProgress([circle]) : new Map<string, CircleMemberProgressDto>(),
   ]);
 
   return {
     ...toCircleSummaryDto({ ...circle, memberCount: members.length }),
     target,
-    members: members.map(toCircleMemberDto),
+    members: members.map((member) => ({
+      ...toCircleMemberDto(member),
+      progress: memberProgress.get(`${circleId}:${member.user.id}`) ?? null,
+    })),
     schedules: schedules.map(toCircleScheduleDto),
     viewer: viewerContext,
   };
