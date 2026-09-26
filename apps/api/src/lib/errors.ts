@@ -28,6 +28,7 @@ export const ERROR_CODES = [
   "CIRCLE_SCHEDULE_NOT_FOUND",
   "DEVICE_NOT_FOUND",
   "PUSH_TOKEN_IN_USE",
+  "RATE_LIMITED",
 ] as const;
 
 export type ErrorCode = (typeof ERROR_CODES)[number];
@@ -75,3 +76,6 @@ export const notFound = (code: ErrorCode, message: string) => new AppError(404, 
 export const conflict = (code: ErrorCode, message: string) => new AppError(409, code, message);
 
 export const badRequest = (code: ErrorCode, message: string) => new AppError(400, code, message);
+
+export const tooManyRequests = (message = "Too many requests. Please try again later.") =>
+  new AppError(429, "RATE_LIMITED", message);

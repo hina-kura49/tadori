@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { DEVICE_PLATFORMS } from "../db/schema";
+import { DEVICE_PLATFORMS, ROADMAP_CATEGORIES } from "../db/schema";
 import { nullableTrimmedString, trimmedString, usernameSchema } from "./common.schema";
 
 export const updateMeSchema = z
@@ -45,6 +45,20 @@ export const updateNotificationPreferenceSchema = z
   .partial()
   .refine((value) => Object.keys(value).length > 0, "At least one field is required");
 
+export const updatePreferenceSchema = z
+  .object({
+    // 同じ Category を 2 回送られても 1 つにまとめる
+    interests: z
+      .array(z.enum(ROADMAP_CATEGORIES))
+      .max(ROADMAP_CATEGORIES.length)
+      .transform((values) => [...new Set(values)]),
+    primaryRoadmapId: z.uuid().nullable(),
+    onboarded: z.boolean(),
+  })
+  .partial()
+  .refine((value) => Object.keys(value).length > 0, "At least one field is required");
+
 export type UpdateMeInput = z.infer<typeof updateMeSchema>;
 export type RegisterDeviceInput = z.infer<typeof registerDeviceSchema>;
 export type UpdateNotificationPreferenceInput = z.infer<typeof updateNotificationPreferenceSchema>;
+export type UpdatePreferenceInput = z.infer<typeof updatePreferenceSchema>;

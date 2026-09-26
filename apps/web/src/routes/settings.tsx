@@ -1,12 +1,14 @@
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Check } from "lucide-react";
 import { type FormEvent, useState } from "react";
 import { Link } from "react-router";
 import { Button, Card, ErrorMessage, Input, Label, Loading, Page } from "@/components/ui";
 import { Toggle } from "@/components/me/Toggle";
 import { useUpdateMe } from "@/hooks/me/useDashboard";
 import { useNotificationPreferences, useUpdateNotificationPreferences } from "@/hooks/me/useNotificationPreferences";
+import { usePreferences, useUpdatePreferences } from "@/hooks/me/usePreferences";
 import { useLeave } from "@/hooks/me/useSignOut";
 import { useMe } from "@/hooks/useMe";
+import { CATEGORIES, categoryLabel } from "@/lib/roadmap/labels";
 
 const USERNAME = /^[a-z0-9_]{3,30}$/;
 
@@ -19,6 +21,7 @@ export default function SettingsScreen() {
       </Link>
       <div className="space-y-10">
         <ProfileSection />
+        <InterestSection />
         <NotificationSection />
         <DangerSection />
       </div>
@@ -83,6 +86,49 @@ function ProfileSection() {
           </Button>
         </form>
       </Card>
+    </section>
+  );
+}
+
+/** 興味のある分野。押すたびに PATCH /me/preferences で保存する */
+function InterestSection() {
+  const { data: p, isPending, error, refetch } = usePreferences();
+  const update = useUpdatePreferences();
+  return (
+    <section className="space-y-3">
+      <Label>Interests</Label>
+      <p className="text-xs text-muted">気になる分野。アプリと共通です。</p>
+      {isPending ? (
+        <Loading />
+      ) : error ? (
+        <ErrorMessage error={error} onRetry={() => refetch()} />
+      ) : (
+        <div className="flex flex-wrap gap-2">
+          {CATEGORIES.map((category) => {
+            const selected = p.interests.includes(category);
+            return (
+              <button
+                key={category}
+                type="button"
+                aria-pressed={selected}
+                disabled={update.isPending}
+                onClick={() =>
+                  update.mutate({
+                    interests: selected ? p.interests.filter((c) => c !== category) : [...p.interests, category],
+                  })
+                }
+                className={`inline-flex items-center gap-1.5 rounded-full border px-4 py-2 text-sm transition-colors disabled:opacity-60 ${
+                  selected ? "border-accent bg-accent text-white" : "border-line bg-white hover:bg-wash"
+                }`}
+              >
+                {selected && <Check size={14} />}
+                {categoryLabel[category]}
+              </button>
+            );
+          })}
+        </div>
+      )}
+      {update.error && <p className="text-sm text-error">{update.error.message}</p>}
     </section>
   );
 }

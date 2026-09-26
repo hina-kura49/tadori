@@ -1,12 +1,15 @@
-import { Route } from "lucide-react";
+import { Check, Route } from "lucide-react";
 import { type FormEvent, useState } from "react";
 import { Navigate, useNavigate } from "react-router";
 import { Button, Card, Input, Label, Loading } from "@/components/ui";
 import { useUpdateMe } from "@/hooks/me/useDashboard";
+import { useUpdatePreferences } from "@/hooks/me/usePreferences";
 import { useMe } from "@/hooks/useMe";
+import { CATEGORIES, type Category, categoryLabel } from "@/lib/roadmap/labels";
 
-// 初回だけ通る画面。ようこそ → 表示名と username を決める (PATCH /me) → Today へ。
+// 初回だけ通る画面。ようこそ → 興味のある分野 → 表示名と username → Today へ。
 // username は自動採番の仮のもの (user_xxxx) なので、ここで本人に決めてもらう。
+// 興味とオンボーディング完了は PATCH /me/preferences、名前は PATCH /me で保存する。
 
 const USERNAME = /^[a-z0-9_]{3,30}$/;
 
@@ -14,7 +17,9 @@ export default function Onboarding() {
   const { data: me, isPending } = useMe();
   const navigate = useNavigate();
   const save = useUpdateMe();
-  const [stage, setStage] = useState<"welcome" | "profile">("welcome");
+  const savePreferences = useUpdatePreferences();
+  const [stage, setStage] = useState<"welcome" | "interests" | "profile">("welcome");
+  const [interests, setInterests] = useState<Category[]>([]);
   const [name, setName] = useState<string>();
   const [username, setUsername] = useState("");
 
@@ -26,11 +31,13 @@ export default function Onboarding() {
   const saveError =
     save.error && "code" in save.error && save.error.code === "USERNAME_TAKEN"
       ? "この username はすでに使われています"
-      : save.error?.message;
+      : (save.error ?? savePreferences.error)?.message;
 
   const onSubmit = async (event: FormEvent) => {
     event.preventDefault();
     try {
+      // PATCH /me が通ると usernameConfirmed が true になり Today へ移るので、好みを先に保存する
+      await savePreferences.mutateAsync({ interests, onboarded: true });
       await save.mutateAsync({ name: (name ?? me.name).trim() || "Learner", username });
       navigate("/", { replace: true });
     } catch {
@@ -56,7 +63,44 @@ export default function Onboarding() {
             <br />
             本から、あなたの学びの道をつくる。
           </p>
-          <Button onClick={() => setStage("profile")}>Start your path</Button>
+          <Button onClick={() => setStage("interests")}>Start your path</Button>
+        </section>
+      ) : stage === "interests" ? (
+        <section className="space-y-6">
+          <div className="space-y-2">
+            <Label>Your interests</Label>
+            <h1 className="font-serif text-3xl leading-tight">What do you want to learn?</h1>
+            <p className="text-sm text-muted">気になる分野を選んでください。あとから設定で変えられます。</p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {CATEGORIES.map((category) => {
+              const selected = interests.includes(category);
+              return (
+                <button
+                  key={category}
+                  type="button"
+                  aria-pressed={selected}
+                  onClick={() =>
+                    setInterests((current) =>
+                      selected ? current.filter((c) => c !== category) : [...current, category],
+                    )
+                  }
+                  className={`inline-flex items-center gap-1.5 rounded-full border px-4 py-2 text-sm transition-colors ${
+                    selected ? "border-accent bg-accent text-white" : "border-line bg-white hover:bg-wash"
+                  }`}
+                >
+                  {selected && <Check size={14} />}
+                  {categoryLabel[category]}
+                </button>
+              );
+            })}
+          </div>
+          <Button className="w-full" onClick={() => setStage("profile")}>
+            {interests.length > 0 ? "次へ" : "あとで選ぶ"}
+          </Button>
+          <Button variant="ghost" className="w-full" onClick={() => setStage("welcome")}>
+            戻る
+          </Button>
         </section>
       ) : (
         <section className="space-y-6">
@@ -85,12 +129,12 @@ export default function Onboarding() {
                   {saveError}
                 </p>
               )}
-              <Button type="submit" className="w-full" loading={save.isPending} disabled={!USERNAME.test(username)}>
+              <Button type="submit" className="w-full" loading={save.isPending || savePreferences.isPending} disabled={!USERNAME.test(username)}>
                 はじめる
               </Button>
             </form>
           </Card>
-          <Button variant="ghost" className="w-full" onClick={() => setStage("welcome")}>
+          <Button variant="ghost" className="w-full" onClick={() => setStage("interests")}>
             戻る
           </Button>
         </section>

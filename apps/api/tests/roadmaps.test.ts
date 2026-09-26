@@ -73,6 +73,20 @@ describe("Roadmap visibility", () => {
     ]);
   });
 
+  it("PUBLIC は未ログインでも Step まで取得でき、本人の進捗 (userProgress) は null", async () => {
+    const alice = await createUser("alice");
+    const roadmap = await createRoadmap(alice, { stepCount: 2 });
+    await api("POST", `/roadmaps/${roadmap.id}/start`, { as: alice });
+
+    const anonymous = await api("GET", `/roadmaps/${roadmap.slug}`);
+    expect(anonymous.status).toBe(200);
+    expect(anonymous.body.steps).toHaveLength(2);
+    expect(anonymous.body.userProgress).toBeNull();
+
+    const own = await api("GET", `/roadmaps/${roadmap.slug}`, { as: alice });
+    expect(own.body.userProgress).not.toBeNull();
+  });
+
   it("UNLISTED は slug を知っていれば未ログインでも取得できる", async () => {
     const alice = await createUser("alice");
     const roadmap = await createRoadmap(alice, { visibility: "UNLISTED" });

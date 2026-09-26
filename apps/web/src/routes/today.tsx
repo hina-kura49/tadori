@@ -1,4 +1,4 @@
-import { ArrowRight, ArrowUpRight, Bell, Pause, Play, Route } from "lucide-react";
+import { ArrowRight, ArrowUpRight, Bell, Pause, Play, Route, Star } from "lucide-react";
 import { Link } from "react-router";
 import { ButtonLink, Card, Empty, ErrorMessage, Label, Loading, Page } from "@/components/ui";
 import { Avatar } from "@/components/Avatar";
@@ -6,6 +6,7 @@ import { BookCover } from "@/components/BookCover";
 import { PathRail } from "@/components/me/PathRail";
 import { ProgressEditor } from "@/components/me/ProgressEditor";
 import { useDashboard, useUpdateRoadmapStatus } from "@/hooks/me/useDashboard";
+import { usePreferences, useUpdatePreferences } from "@/hooks/me/usePreferences";
 import { stepPercentage, summarize } from "@/lib/me/progress";
 
 const greeting = (hour: number) =>
@@ -14,10 +15,13 @@ const greeting = (hour: number) =>
 export default function Today() {
   const { data: d, isPending, error, refetch } = useDashboard();
   const status = useUpdateRoadmapStatus();
-  if (isPending) return <Loading />;
+  // メインの Roadmap の選択。取れなくても Today は出す (先頭をメインにする)
+  const preferences = usePreferences();
+  const setPrimary = useUpdatePreferences();
+  if (isPending || preferences.isPending) return <Loading />;
   if (error) return <Page><ErrorMessage error={error} onRetry={() => refetch()} /></Page>;
 
-  // 学習中 (未完了) のロードマップ。先頭をメインとして大きく出す
+  // 学習中 (未完了) のロードマップ。メインに選んだもの (無ければ先頭) を大きく出す
   const paths = d.userRoadmaps.flatMap((userRoadmap) => {
     const roadmap = d.roadmaps.find((r) => r.id === userRoadmap.roadmapId);
     if (!roadmap) return [];
@@ -26,7 +30,9 @@ export default function Today() {
   });
   const active = paths.filter((p) => p.userRoadmap.status === "IN_PROGRESS");
   const paused = paths.filter((p) => p.userRoadmap.status === "PAUSED");
-  const main = active[0];
+  const primaryId = preferences.data?.primaryRoadmapId;
+  const main = active.find((p) => p.roadmap.id === primaryId) ?? active[0];
+  const others = active.filter((p) => p !== main);
   const date = new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", weekday: "long" });
 
   return (
@@ -130,21 +136,26 @@ export default function Today() {
           </Empty>
         )}
 
-        {(active.length > 1 || paused.length > 0) && (
+        {(others.length > 0 || paused.length > 0) && (
           <section className="space-y-3 border-t border-line pt-6">
             <h2 className="font-medium">Other paths</h2>
             <ul className="divide-y divide-line">
-              {active.slice(1).map(({ roadmap, s }) => (
-                <li key={roadmap.id}>
-                  <Link to={`/roadmaps/${roadmap.slug}`} className="flex items-center justify-between gap-3 py-3">
-                    <span className="min-w-0">
-                      <span className="block truncate font-serif text-lg">{roadmap.title}</span>
-                      <span className="text-xs text-muted">
-                        {s.done} / {s.steps.length} 冊
-                      </span>
+              {others.map(({ roadmap, s }) => (
+                <li key={roadmap.id} className="flex items-center justify-between gap-3 py-3">
+                  <Link to={`/roadmaps/${roadmap.slug}`} className="min-w-0">
+                    <span className="block truncate font-serif text-lg">{roadmap.title}</span>
+                    <span className="text-xs text-muted">
+                      {s.done} / {s.steps.length} 冊
                     </span>
-                    <ArrowRight size={16} className="shrink-0 text-accent" />
                   </Link>
+                  <button
+                    onClick={() => setPrimary.mutate({ primaryRoadmapId: roadmap.id })}
+                    disabled={setPrimary.isPending}
+                    className="inline-flex shrink-0 items-center gap-1 rounded-full px-3 py-1.5 text-xs text-accent hover:bg-wash"
+                  >
+                    <Star size={14} />
+                    メインにする
+                  </button>
                 </li>
               ))}
               {paused.map(({ roadmap, userRoadmap, s }) => (
@@ -169,6 +180,7 @@ export default function Today() {
           </section>
         )}
         {status.error && <p className="text-sm text-error">{status.error.message}</p>}
+        {setPrimary.error && <p className="text-sm text-error">{setPrimary.error.message}</p>}
 
         <p className="flex items-center justify-center gap-1.5 text-xs text-muted">
           <Route size={15} />

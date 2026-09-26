@@ -6,6 +6,7 @@ import {
   registerDeviceSchema,
   updateMeSchema,
   updateNotificationPreferenceSchema,
+  updatePreferenceSchema,
 } from "../schemas/me.schema";
 import {
   listMyRoadmapsQuerySchema,
@@ -19,6 +20,7 @@ import * as dashboardService from "../services/dashboard.service";
 import * as deviceService from "../services/device.service";
 import * as notificationPreferenceService from "../services/notification-preference.service";
 import * as progressService from "../services/progress.service";
+import * as userPreferenceService from "../services/user-preference.service";
 import * as userService from "../services/user.service";
 
 // /me 以下はすべて「ログイン中の本人」のデータ。
@@ -99,6 +101,17 @@ export const meRoutes = new Hono()
       );
       return c.json(preferences, 200);
     },
-  );
+  )
+  .get("/preferences", async (c) => {
+    const preferences = await userPreferenceService.getPreferences(c.get("user"));
+    return c.json(preferences, 200);
+  })
+  .patch("/preferences", validate("json", updatePreferenceSchema), async (c) => {
+    const preferences = await userPreferenceService.updatePreferences(
+      c.get("user"),
+      c.req.valid("json"),
+    );
+    return c.json(preferences, 200);
+  });
 
 export type MeRoutes = typeof meRoutes;

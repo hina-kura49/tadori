@@ -17,6 +17,7 @@ export default defineConfig({
       BETTER_AUTH_SECRET: "test-secret-test-secret-test-secret-1234",
       BETTER_AUTH_URL: "http://localhost:4000",
       CORS_ORIGIN: "http://localhost:8081",
+      PROXY_SHARED_SECRET: "test-proxy-secret",
     },
   },
 });

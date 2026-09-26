@@ -1,7 +1,16 @@
-# バックエンド課題（Web 版対応）写経用手順書
+# バックエンド課題（Web 版対応）の解説
 
 Web 版（`apps/web`）を本番に出すまでに、API（`apps/api`）側でやることをまとめました。
-各課題のコードは、`apps/api` のコピーに実際に当てて **型チェックとテスト（全95件）が通ることを確認済み** です。そのまま写経すれば動きます。
+
+> **課題3・4・5 は実装済みです。** 「API にレート制限・公開ロードマップのテスト・user_preferences を追加」のコミットで
+> `apps/api` に入っています。このページは **実際のコードの解説** として読んでください（写経のお手本ではなくなりました）。
+> 課題1・2 はコード変更のない本番の設定作業なので、公開のときに行います。
+>
+> 実装に合わせて Web 側も対応済みです:
+> - オンボーディングで興味のある分野を選び、`PATCH /me/preferences` に保存（`apps/web/src/routes/onboarding.tsx`）
+> - Today のメインの Roadmap を `primaryRoadmapId` から決め、「メインにする」で切り替え（`routes/today.tsx`）
+> - 設定画面で興味のある分野を編集（`routes/settings.tsx`）
+> - 中継（`functions/_api/[[path]].ts`）が `x-client-ip` と `x-proxy-secret` を付ける
 
 ## まず前提：Web 版は「同じオリジンの中継」で API を呼ぶ
 
@@ -23,15 +32,15 @@ Web 版はこの制限を避けるため、API を直接呼ばずに **自分と
 
 ## 課題一覧
 
-| # | 課題 | 難しさ | 目安 | コード変更 |
+| # | 課題 | 難しさ | 目安 | 状態 |
 |---|---|---|---|---|
-| 1 | `CORS_ORIGIN` に Web のオリジンを足す | ★☆☆ | 15分 | なし（環境変数だけ） |
-| 2 | 本番の Cookie 設定を理解して確かめる | ★★☆ | 45分 | なし（中継の条件を確認） |
-| 3 | ログイン API にレート制限を入れる | ★★☆ | 1.5時間 | あり（ミドルウェア＋テスト） |
-| 4 | 公開ロードマップが未ログインで見られるか確認 | ★☆☆ | 30分 | テスト1本 |
-| 5 | 端末内だけのデータを API に移す（1つ分） | ★★★ | 3時間 | あり（テーブル〜テストまで一式） |
+| 1 | `CORS_ORIGIN` に Web のオリジンを足す | ★☆☆ | 15分 | 公開時に設定（環境変数だけ） |
+| 2 | 本番の Cookie 設定を理解して確かめる | ★★☆ | 45分 | 公開時に確認（中継は条件を満たし済み） |
+| 3 | ログイン API にレート制限を入れる | ★★☆ | 1.5時間 | **実装済み**（ミドルウェア＋テスト） |
+| 4 | 公開ロードマップが未ログインで見られるか確認 | ★☆☆ | 30分 | **実装済み**（テスト1本） |
+| 5 | 端末内だけのデータを API に移す（1つ分） | ★★★ | 3時間 | **実装済み**（テーブル〜テストまで一式） |
 
-おすすめの順番は 1 → 4 → 2 → 3 → 5 です。
+読む順番は 1 → 4 → 2 → 3 → 5 がおすすめです。
 
 ### 作業の基本
 
@@ -221,7 +230,7 @@ Rate limiting could not determine a client IP and is falling back to a single sh
 - 新規: `src/middleware/rate-limit.ts`、`tests/rate-limit.test.ts`
 - 変更: `src/lib/errors.ts`、`src/lib/env.ts`、`src/app.ts`、`vitest.config.ts`、`.env.example`
 
-### 写経用コード
+### 実装したコード
 
 **`src/lib/errors.ts`**（エラーコードを1つ足し、ヘルパー関数を末尾に追加）
 ```diff
@@ -511,7 +520,7 @@ Web 版の共有ページ（`/r/:slug`）を、ログインしていない人で
 ### 触るファイル
 - `tests/roadmaps.test.ts`（`describe("Roadmap visibility", ...)` の中、`UNLISTED` のテストの直前）
 
-### 写経用コード
+### 実装したコード
 ```ts
   it("PUBLIC は未ログインでも Step まで取得でき、本人の進捗 (userProgress) は null", async () => {
     const alice = await createUser("alice");
@@ -581,7 +590,7 @@ route (routes/me.ts) → schema で入力チェック (schemas/me.schema.ts)
 - 自動生成: `drizzle/0002_user_preferences.sql`、`drizzle/meta/0002_snapshot.json`、`drizzle/meta/_journal.json`
 - 変更: `src/db/schema/index.ts`、`src/schemas/me.schema.ts`、`src/routes/me.ts`、`tests/helpers/setup.ts`
 
-### 写経用コード
+### 実装したコード
 
 **① テーブル定義 `src/db/schema/preferences.ts`**（新規）
 ```ts

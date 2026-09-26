@@ -15,6 +15,13 @@
       "when": 1789986049701,
       "tag": "0001_bizarre_masked_marvel",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1790396028538,
+      "tag": "0002_user_preferences",
+      "breakpoints": true
     }
   ]
 }

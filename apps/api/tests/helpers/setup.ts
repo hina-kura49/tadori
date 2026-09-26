@@ -12,7 +12,7 @@ beforeEach(async () => {
       users, sessions, accounts, verifications,
       books, roadmaps, roadmap_steps, user_roadmaps, user_roadmap_step_progress,
       circles, circle_members, circle_invites, circle_schedules,
-      device_push_tokens, notification_preferences
+      device_push_tokens, notification_preferences, user_preferences
     restart identity cascade
   `);
 
