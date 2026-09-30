@@ -21,7 +21,7 @@ pnpm --filter @tadori/mobile web -- --port 8087
 
 ### Web版（apps/web）
 
-ブラウザ向けのWeb版です。APIへは同じオリジンの `/_api` を経由して繋ぎ、ログインはCookieで保持します。
+ブラウザ向けのWeb版です（React Router 7のフレームワークモード）。APIへは同じオリジンの `/_api` を経由して繋ぎ、ログインはCookieで保持します。共有リンク `/r/:slug` はサーバーでHTMLを作り、ロードマップの中身とOGPタグを含めます。
 
 ```sh
 # ローカルのPostgres（docker compose）に繋いだAPIを http://localhost:4000 で起動
@@ -31,7 +31,7 @@ pnpm web
 ```
 
 `apps/api/.env` はローカル用です。ローカルと本番（main）の使い分けは [運用](docs/operations.md) を参照してください。
-本番はVercelで配信し、`apps/web/api/proxy.ts`（Vercel Functions）がRenderのAPIへ中継します（[手順](docs/web/deployment.md)）。
+本番はVercelで配信し、`apps/web/src/routes/api-proxy.ts`（Vercel Functionsの中で動くReact Routerのルート）がRenderのAPIへ中継します（[手順](docs/web/deployment.md)）。
 
 Expo SDK 55に対応するExpo Go、またはdevelopment buildで開いてください。今回の確認環境では、XcodeのシミュレーターGUIはDeviceHubという名称です。
 

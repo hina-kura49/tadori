@@ -1,6 +1,6 @@
 import { createApiClient } from "@tadori/api/client";
 
-// API の置き場所。開発中・本番ともに同じオリジンの /_api を経由する (vite.config.ts 参照)。
+// API の置き場所。開発中・本番ともに同じオリジンの /_api を経由する (src/routes/api-proxy.ts 参照)。
 export const API_BASE = import.meta.env.VITE_API_URL ?? "/_api";
 
 // Hono RPC クライアント。apps/api の route の型がそのまま付く。

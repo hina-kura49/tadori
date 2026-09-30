@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { proxy } from "../api/proxy";
+import { proxy } from "../src/lib/proxy.server";
 
 const env = { API_ORIGIN: "https://api.example.com", PROXY_SHARED_SECRET: "secret" };
 
@@ -19,18 +19,19 @@ afterEach(() => vi.unstubAllGlobals());
 describe("proxy", () => {
   it("/_api より後ろのパスとクエリを API へ渡す", async () => {
     const sent = capture();
-    await proxy(new Request("https://tadori.vercel.app/api/proxy?__path=roadmaps/abc&category=DESIGN"), env);
+    await proxy(new Request("https://tadori.vercel.app/_api/roadmaps/abc?category=DESIGN"), "roadmaps/abc", env);
     expect(sent().url).toBe("https://api.example.com/roadmaps/abc?category=DESIGN");
   });
 
   it("利用者が偽った x-client-ip は捨て、Vercel が調べた IP と合言葉を付ける", async () => {
     const sent = capture();
     await proxy(
-      new Request("https://tadori.vercel.app/api/proxy?__path=api/auth/sign-in/email", {
+      new Request("https://tadori.vercel.app/_api/api/auth/sign-in/email", {
         method: "POST",
         headers: { "x-client-ip": "1.1.1.1", "x-proxy-secret": "guess", "x-real-ip": "203.0.113.5", origin: "https://tadori.vercel.app" },
         body: "{}",
       }),
+      "api/auth/sign-in/email",
       env,
     );
     const { headers, init } = sent();
@@ -44,7 +45,8 @@ describe("proxy", () => {
   it("合言葉が未設定なら IP を送らない", async () => {
     const sent = capture();
     await proxy(
-      new Request("https://tadori.vercel.app/api/proxy?__path=me", { headers: { "x-real-ip": "203.0.113.5", "x-client-ip": "1.1.1.1" } }),
+      new Request("https://tadori.vercel.app/_api/me", { headers: { "x-real-ip": "203.0.113.5", "x-client-ip": "1.1.1.1" } }),
+      "me",
       { API_ORIGIN: env.API_ORIGIN },
     );
     expect(sent().headers.get("x-client-ip")).toBeNull();
@@ -52,8 +54,16 @@ describe("proxy", () => {
 
   it("Set-Cookie は残し、展開済みの本文と食い違う圧縮の見出しは外す", async () => {
     capture();
-    const res = await proxy(new Request("https://tadori.vercel.app/api/proxy?__path=me"), env);
+    const res = await proxy(new Request("https://tadori.vercel.app/_api/me"), "me", env);
     expect(res.headers.get("set-cookie")).toBe("a=1");
     expect(res.headers.get("content-encoding")).toBeNull();
+  });
+
+  it("本番で API_ORIGIN が無ければ 500 を返す (開発中はローカルの API へ繋ぐ)", async () => {
+    const sent = capture();
+    const res = await proxy(new Request("https://tadori.vercel.app/_api/me"), "me", { NODE_ENV: "production" });
+    expect(res.status).toBe(500);
+    await proxy(new Request("http://localhost:5173/_api/me"), "me", { NODE_ENV: "development" });
+    expect(sent().url).toBe("http://localhost:4000/me");
   });
 });

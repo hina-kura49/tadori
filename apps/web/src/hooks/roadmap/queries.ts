@@ -34,14 +34,18 @@ export function useRoadmapList(filters: { q?: string; category?: Category }) {
   });
 }
 
-export function useRoadmap(slug: string, options?: { enabled?: boolean }) {
+const fetchRoadmap = (slug: string) => unwrap(api.roadmaps[":slug"].$get({ param: { slug } }));
+export type RoadmapDetail = Awaited<ReturnType<typeof fetchRoadmap>>;
+
+/** initialData: サーバーで取得済みのデータ (/r/:slug の loader)。あればそれを最初の表示に使う */
+export function useRoadmap(slug: string, options?: { enabled?: boolean; initialData?: RoadmapDetail }) {
   return useQuery({
     queryKey: roadmapKeys.detail(slug),
     enabled: options?.enabled ?? true,
-    queryFn: () => unwrap(api.roadmaps[":slug"].$get({ param: { slug } })),
+    initialData: options?.initialData,
+    queryFn: () => fetchRoadmap(slug),
   });
 }
-export type RoadmapDetail = NonNullable<ReturnType<typeof useRoadmap>["data"]>;
 export type RoadmapStep = RoadmapDetail["steps"][number];
 export type RoadmapSummary = NonNullable<
   ReturnType<typeof useRoadmapList>["data"]

@@ -12,7 +12,9 @@
     "skipLibCheck": true,
     "noEmit": true,
     "types": ["vite/client", "node"],
+    // react-router typegen が作る画面ごとの型 (./+types/...) を読めるようにする
+    "rootDirs": [".", "./.react-router/types"],
     "paths": { "@/*": ["./src/*"] }
   },
-  "include": ["src", "api", "tests", "vite.config.ts", "vitest.config.ts"]
+  "include": ["src", "tests", ".react-router/types/**/*", "react-router.config.ts", "vite.config.ts", "vitest.config.ts"]
 }

@@ -10,3 +10,7 @@ playwright-report/
 apps/mobile/ios/
 apps/mobile/android/
 .vercel/
+
+# React Router (apps/web) の型生成とビルド結果
+.react-router/
+apps/web/build/

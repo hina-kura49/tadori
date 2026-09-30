@@ -1,25 +1,25 @@
 # Web版の公開（Vercel）
 
-Web版（`apps/web`）は、ビルドすると HTML・JS・CSS だけの静的サイトになる。これを Vercel で配信する。
+Web版（`apps/web`）は React Router のフレームワークモードで作っていて、Vercel で配信する。
+SSR（サーバーで HTML を作る方式）を有効にしているのは、共有リンク `/r/:slug` の HTML にロードマップの中身と OGP タグ（SNS やチャットのリンクプレビュー用のタグ）を入れるため。ほかの画面は、ブラウザでデータを取る。
 API は今までどおり Render（https://tadori.onrender.com）を使う。
 
 ## 全体の形
 
 ```text
 ブラウザ ──▶ https://<プロジェクト名>.vercel.app
-               ├─ /            … apps/web/dist の静的ファイル（React アプリ）
-               └─ /_api/*      … Vercel Functions が Render の API へ中継
-                                  (vercel.json の rewrites → apps/web/api/proxy.ts)
+               ├─ /assets/*    … JS・CSS・画像（静的ファイル）
+               ├─ /r/:slug     … サーバーで Render の API からロードマップを取り、中身と OGP 入りの HTML を返す
+               ├─ /_api/*      … Render の API へ中継（src/routes/api-proxy.ts → src/lib/proxy.server.ts）
+               └─ それ以外     … 画面の骨組みの HTML を返し、データはブラウザで取る
 ```
 
+サーバー側の処理は、`@vercel/react-router` のプリセット（`react-router.config.ts`）が Vercel Functions にまとめる。
+
 ブラウザからは、API も同じドメインにあるように見える。そのためログイン Cookie が「他サイトの Cookie（サードパーティ Cookie）」扱いにならず、`SameSite=None` などを設定しなくても Cookie でログインを保てる。
-開発中は、`vite.config.ts` の `proxy` が同じ役割をする。
+中継は React Router のルートなので、開発中（`pnpm web`）も同じコードが動く。開発中は `API_ORIGIN` を省略すると `http://localhost:4000` に繋ぐ。
 
-`vercel.json` の `rewrites` は2つある。
-- `/_api/:path*` を `api/proxy.ts` に回す（中継）
-- それ以外の知らない URL（例: `/roadmaps/xxx`）には `index.html` を返す（SPA：1枚の HTML で画面を切り替える方式）
-
-JS や画像のような実在するファイルは、`rewrites` より先に配信される。
+`/r/:slug` のサーバー側の取得は5秒で打ち切る（`src/lib/roadmap/share.server.ts`）。Render が休止明けで間に合わないときは、画面の骨組みだけを返してブラウザで取り直す。そのときのリンクプレビューはタイトルが「Tadori」だけになる。
 
 ## 初回の設定
 
@@ -32,7 +32,7 @@ JS や画像のような実在するファイルは、`rewrites` より先に配
 
    | 名前 | 値 | 用途 |
    |---|---|---|
-   | `API_ORIGIN` | `https://tadori.onrender.com` | 中継先（`api/proxy.ts` が使う） |
+   | `API_ORIGIN` | `https://tadori.onrender.com` | 中継先と、`/r/:slug` をサーバーで作るときの取得先。**必須**（本番で無いと中継が 500 を返す） |
    | `PROXY_SHARED_SECRET` | Render と同じ値（任意） | API のレート制限（一定時間のアクセス回数の制限）が、利用者の IP を知るための合言葉（[課題3](backend-tasks.md)）。Sensitive として登録する |
 
 4. Render 側の環境変数 `CORS_ORIGIN` に、`https://<プロジェクト名>.vercel.app` を足す（カンマ区切り）。
@@ -58,5 +58,6 @@ JS や画像のような実在するファイルは、`rewrites` より先に配
 
 - Vercel 上での実際のビルドと公開（アカウント操作が必要なため、まだ行っていない）。
 - Render の無料プランは、15分使われないと休止する。そのあとの最初のリクエストには数十秒かかる。
-  - Vercel Functions の実行時間の上限（Hobby の既定）を超えると、中継がエラーになることがある。
-  - 起こるようなら、`vercel.json` の `functions` で `api/proxy.ts` の `maxDuration` を延ばす。
+  - Vercel Functions の実行時間の上限を超えると、中継がエラーになることがある。
+  - 起こるようなら、Vercel のプロジェクト設定（Functions → Max Duration）で上限を延ばす。
+- OGP の画像は今はアプリのアイコン（`/icon.png`）。ロードマップごとの画像は作っていない。

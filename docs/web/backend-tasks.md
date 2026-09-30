@@ -10,7 +10,7 @@ Web 版（`apps/web`）を本番に出すまでに、API（`apps/api`）側で�
 > - オンボーディングで興味のある分野を選び、`PATCH /me/preferences` に保存（`apps/web/src/routes/onboarding.tsx`）
 > - Today のメインの Roadmap を `primaryRoadmapId` から決め、「メインにする」で切り替え（`routes/today.tsx`）
 > - 設定画面で興味のある分野を編集（`routes/settings.tsx`）
-> - 中継（`apps/web/api/proxy.ts`）が `x-client-ip` と `x-proxy-secret` を付ける
+> - 中継（`apps/web/src/lib/proxy.server.ts`）が `x-client-ip` と `x-proxy-secret` を付ける
 
 ## まず前提：Web 版は「同じオリジンの中継」で API を呼ぶ
 
@@ -19,8 +19,8 @@ Web 版はこの制限を避けるため、API を直接呼ばずに **自分と
 
 ```
 ブラウザ ──> https://<Web のドメイン>/_api/me ──(中継)──> https://tadori.onrender.com/me
-             ・開発中: Vite の proxy（apps/web/vite.config.ts）
-             ・本番  : Vercel Functions（apps/web/api/proxy.ts。vercel.json の rewrites で /_api/* を回す）
+             ・開発中も本番も: React Router のルート（apps/web/src/routes/api-proxy.ts）
+               本番では Vercel Functions の中で動く
 ```
 
 ブラウザから見ると全部「Web のドメイン」との通信なので、
@@ -257,7 +257,7 @@ Rate limiting could not determine a client IP and is falling back to a single sh
          .filter((origin) => origin.length > 0),
      ),
    APP_SCHEME: z.string().min(1).default("tadori"),
-+  // Web 版の中継 (Vercel Functions: apps/web/api/proxy.ts) と API だけが知る合言葉。
++  // Web 版の中継 (apps/web/src/lib/proxy.server.ts) と API だけが知る合言葉。
 +  // 一致したリクエストだけ、中継が付けた x-client-ip を本当の IP として信じる
 +  PROXY_SHARED_SECRET: optionalString,
    EXPO_ACCESS_TOKEN: optionalString,
