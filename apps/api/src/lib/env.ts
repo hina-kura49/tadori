@@ -34,7 +34,7 @@ const envSchema = z.object({
         .map((origin) => origin.trim())
         .filter((origin) => origin.length > 0),
     ),
-  APP_SCHEME: z.string().min(1).default("tadori"),
+  APP_SCHEME: z.string().min(1).default("readtree"),
   // Web 版の中継 (apps/web/src/lib/proxy.server.ts) と API だけが知る合言葉。
   // 一致したリクエストだけ、中継が付けた x-client-ip を本当の IP として信じる
   PROXY_SHARED_SECRET: optionalString,

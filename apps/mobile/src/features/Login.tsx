@@ -42,7 +42,7 @@ export default function Login() {
   return (
     <Screen>
       <PageTitle
-        eyebrow="TADORI"
+        eyebrow="READTREE"
         title={isSignUp ? "Start your path." : "Welcome back."}
         description="誰かが作った学びの道を、辿る。"
       />

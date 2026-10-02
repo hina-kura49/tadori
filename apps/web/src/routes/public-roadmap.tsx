@@ -21,15 +21,15 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 
 export const meta: Route.MetaFunction = ({ data }) => {
   const roadmap = data?.roadmap;
-  if (!roadmap) return [{ title: data?.notFound ? "道が見つかりませんでした | Tadori" : "Tadori" }];
-  const title = `${roadmap.title} | Tadori`;
+  if (!roadmap) return [{ title: data?.notFound ? "道が見つかりませんでした | Readtree" : "Readtree" }];
+  const title = `${roadmap.title} | Readtree`;
   const description =
     roadmap.description ?? `${roadmap.creator.name} さんが選んだ ${roadmap.stepCount} 冊で辿る学びの道。`;
   return [
     { title },
     { name: "description", content: description },
     { property: "og:type", content: "article" },
-    { property: "og:site_name", content: "Tadori" },
+    { property: "og:site_name", content: "Readtree" },
     { property: "og:title", content: roadmap.title },
     { property: "og:description", content: description },
     { property: "og:url", content: data.url },
@@ -51,7 +51,7 @@ export default function PublicRoadmap({ params, loaderData }: Route.ComponentPro
       <header className="border-b border-line">
         <div className="mx-auto flex max-w-3xl items-center justify-between px-4 py-3 md:px-6">
           <Link to={loggedIn ? "/" : "/login"} className="font-serif text-xl">
-            Tadori
+            Readtree
           </Link>
           {!me.isPending && !loggedIn && (
             <Link to={`/login?next=${encodeURIComponent(detailPath)}`} className="text-sm text-accent">
@@ -77,7 +77,7 @@ export default function PublicRoadmap({ params, loaderData }: Route.ComponentPro
           <RoadmapHeader roadmap={query.data} />
           <div className="mt-6 rounded-2xl border border-accent/25 bg-wash p-5">
             <p className="font-serif text-lg">この道を、あなたも辿ってみませんか。</p>
-            <p className="mt-1 text-xs text-muted">Tadori で進み具合を記録しながら、一冊ずつ進められます。</p>
+            <p className="mt-1 text-xs text-muted">Readtree で進み具合を記録しながら、一冊ずつ進められます。</p>
             <ButtonLink
               className="mt-4"
               to={loggedIn ? detailPath : `/login?next=${encodeURIComponent(detailPath)}`}

@@ -34,7 +34,7 @@ export default function Onboarding() {
       <Row style={{ gap: 8 }}>
         <Route size={22} color={c.accent} />
         <Txt serif style={{ fontSize: 29 }}>
-          tadori
+          readtree
         </Txt>
       </Row>
       {welcome ? (

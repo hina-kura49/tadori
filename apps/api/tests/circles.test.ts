@@ -113,7 +113,7 @@ describe("Circle join / leave", () => {
     expect(messages[0]?.data).toMatchObject({
       type: "CIRCLE_JOIN",
       circleId: circle.id,
-      url: `tadori://circles/${circle.id}`,
+      url: `readtree://circles/${circle.id}`,
     });
   });
 

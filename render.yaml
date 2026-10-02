@@ -23,6 +23,6 @@ services:
       - key: AUTH_EMAIL_PASSWORD_ENABLED
         value: "true"
       - key: APP_SCHEME
-        value: tadori
+        value: readtree
       - key: LOG_LEVEL
         value: info

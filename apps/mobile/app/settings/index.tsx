@@ -114,7 +114,7 @@ export default function Settings() {
         </View>
       )}
       <Txt muted style={{ fontSize: 11, textAlign: "center" }}>
-        Tadori 1.0 · 誰かが作った学びの道を、辿る。
+        Readtree 1.0 · 誰かが作った学びの道を、辿る。
       </Txt>
     </Screen>
   );

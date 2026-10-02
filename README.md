@@ -1,8 +1,12 @@
-# Tadori
+# Readtree
 
-<img src="apps/mobile/assets/icon.png" alt="Tadoriのアイコン：深緑を背景に、本と学びの道を組み合わせたシンボル" width="128" height="128" />
+<img src="apps/mobile/assets/icon.png" alt="Readtreeのアイコン：深緑を背景に、本と学びの道を組み合わせたシンボル" width="128" height="128" />
 
 **誰かが作った学びの道を、辿る。**
+
+> 2026-10 に名前を **Tadori → Readtree** に変更しました（`tadori.app` のドメインが取れなかったため）。
+> 変えたのは利用者に見える部分（アプリの表示名、`scheme: readtree`、Bundle ID `app.readtree.mobile`、Web の表示）です。
+> パッケージ名 `@tadori/*`・GitHub のリポジトリ名・Render のサービス名（`tadori.onrender.com`）・DB 名・端末に保存するデータのキー（`tadori.*`）は、内部の名前として `tadori` のまま残しています。
 
 技術書・ビジネス書を「順番」と「できるようになること」でつなぐ、学習RoadmapのモバイルMVPです。ホームにはメインRoadmapの今読む一冊を表示します。各本のCheckpointに到達すると、次の一冊へ進みます。
 
@@ -135,10 +139,10 @@ EXPO_PUBLIC_API_URL=https://your-hono-api.example
 
 - Study Reminder: enabled、HH:mm、曜日（Expoの1=日〜7=土）、任意のroadmapId。
 - 初期状態はOFF。ユーザーがONにして保存した時に通知許可を求め、曜日ごとのweekly local notificationを予約。
-- 再設定時はTadoriのStudy通知だけを置換。新しい予約が失敗したら新規分を取り消し、既存予約を維持。
+- 再設定時はReadtreeのStudy通知だけを置換。新しい予約が失敗したら新規分を取り消し、既存予約を維持。
 - Circle / Progress / Inviteの設定を保存。実Push配信はbackendが設定に従って行います。
 - EAS projectIdが設定されたnative buildからExpo Push Tokenを取得し、`POST /v1/me/devices`へ登録する接続点を用意。
-- 通知の`data.url`はTadoriの対応pathだけを許可。起動中・cold startの両方を処理し、同一responseの二重遷移を防止。
+- 通知の`data.url`はReadtreeの対応pathだけを許可。起動中・cold startの両方を処理し、同一responseの二重遷移を防止。
 - Webではlocal notification予約を行わず、その設定がnativeアプリ向けであることを表示。
 - Push配信はAPNs / FCM credential、EAS projectId、実backendの設定が必要。Expo GoはPushの本番検証環境ではありません。
 
@@ -147,17 +151,17 @@ EXPO_PUBLIC_API_URL=https://your-hono-api.example
 ## Deep Link Design
 
 ```text
-tadori://roadmaps/backend-engineering
-tadori://circles/backend-circle
-tadori://profile/kurashina
-https://tadori.app/r/backend-engineering
-https://tadori.app/profile/kurashina
-https://tadori.app/circles/backend-circle
+readtree://roadmaps/backend-engineering
+readtree://circles/backend-circle
+readtree://profile/kurashina
+<EXPO_PUBLIC_WEB_URL>/r/backend-engineering
+<EXPO_PUBLIC_WEB_URL>/profile/kurashina
+<EXPO_PUBLIC_WEB_URL>/circles/backend-circle
 ```
 
-Expo Routerのfile routesと`scheme: tadori`、iOS associatedDomains、Android intentFiltersを設定済み。Expo Goでは開発URL（例：`exp://127.0.0.1:8087/--/roadmaps/backend-engineering`）で確認できます。
+Expo Routerのfile routesと`scheme: readtree`を設定済み。共有ボタンは、`EXPO_PUBLIC_WEB_URL`（Web版のURL）が設定されていればWebのURLを、未設定なら`readtree://`のリンクを共有します。Expo Goでは開発URL（例：`exp://127.0.0.1:8087/--/roadmaps/backend-engineering`）で確認できます。
 
-Universal Linksの実運用には、所有ドメインでのWeb配信と`.well-known/apple-app-site-association` / `assetlinks.json`の公開、Apple Team IDとAndroid署名fingerprint、署名済みアプリが必要です。**tadori.appへの公開・ドメイン検証は行っていません。** Mockのユーザー登録データはその端末だけにあるため、別端末への共有はbackend接続後に成立します。
+Universal Linksの実運用には、所有ドメインでのWeb配信と`.well-known/apple-app-site-association` / `assetlinks.json`の公開、Apple Team IDとAndroid署名fingerprint、署名済みアプリが必要です。**所有ドメインがまだ無いため、iOS associatedDomains・Android intentFiltersの設定は外しています。** Mockのユーザー登録データはその端末だけにあるため、別端末への共有はbackend接続後に成立します。
 
 ## Seed / Mock Data
 

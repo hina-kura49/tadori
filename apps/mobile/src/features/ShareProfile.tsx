@@ -44,7 +44,7 @@ export default function ShareProfile() {
     try {
       if (Platform.OS === "web") {
         await Share.share({
-          message: `${d.profile.name}の学びの道 — Tadori\n${d.profile.interests.join(" / ")}\n${checkpoints} checkpoints · ${completed} roadmaps completed\n誰かが作った学びの道を、辿る。`,
+          message: `${d.profile.name}の学びの道 — Readtree\n${d.profile.interests.join(" / ")}\n${checkpoints} checkpoints · ${completed} roadmaps completed\n誰かが作った学びの道を、辿る。`,
         });
         return;
       }
@@ -96,7 +96,7 @@ export default function ShareProfile() {
           <Row style={{ gap: 7 }}>
             <Route size={21} color={c.accent} />
             <Txt serif style={{ fontSize: 27, lineHeight: 35 }}>
-              tadori
+              readtree
             </Txt>
           </Row>
           <Txt muted style={{ fontSize: 10 }}>

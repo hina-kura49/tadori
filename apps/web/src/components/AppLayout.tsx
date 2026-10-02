@@ -17,7 +17,7 @@ export function AppLayout() {
     <div className="min-h-dvh">
       <header className="sticky top-0 z-10 hidden border-b border-line bg-paper/90 backdrop-blur md:block">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-3">
-          <NavLink to="/" className="font-serif text-xl">Tadori</NavLink>
+          <NavLink to="/" className="font-serif text-xl">Readtree</NavLink>
           <nav className="flex gap-6 text-sm">
             {tabs.map(({ to, label, end }) => (
               <NavLink key={to} to={to} end={end} className={linkClass}>

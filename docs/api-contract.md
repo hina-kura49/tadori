@@ -1,4 +1,4 @@
-# Tadori frontend → Hono API contract
+# Readtree frontend → Hono API contract
 
 `EXPO_PUBLIC_API_URL`をbase URLとし、すべてJSON（画像uploadのみmultipart/form-data）。NativeはBearer token、Webはcredential付きsession cookieを利用します。認証フローは別途サーバー接続時に実装してください。
 
@@ -30,7 +30,7 @@ Push payload例：
   "to": "ExponentPushToken[...]",
   "title": "Circleの時間です",
   "body": "Backend, together. は20:00からです。",
-  "data": { "url": "tadori://circles/backend-circle", "type": "circle_meeting" }
+  "data": { "url": "readtree://circles/backend-circle", "type": "circle_meeting" }
 }
 ```
 

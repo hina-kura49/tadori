@@ -57,7 +57,7 @@ export default function Login() {
       <div className="space-y-3 text-center">
         <p className="inline-flex items-center gap-2 font-serif text-3xl">
           <Route className="text-accent" size={26} />
-          tadori
+          readtree
         </p>
         <p className="text-sm text-muted">本から、あなたの学びの道をつくる。</p>
       </div>

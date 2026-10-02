@@ -3,7 +3,7 @@ import * as Notifications from "expo-notifications";
 import Constants from "expo-constants";
 import { router, Href } from "expo-router";
 import { NotificationSettings } from "@/types/domain";
-import { notificationPath } from "./links";
+import { APP_SCHEME, notificationPath } from "./links";
 import { repository } from "@/api/repository";
 if (Platform.OS !== "web")
   Notifications.setNotificationHandler({
@@ -78,7 +78,7 @@ export async function scheduleReminder(
             body: bookTitle
               ? `『${bookTitle}』の続きを読みませんか？`
               : "あなたの学びの道を、少し進めませんか？",
-            data: { url: slug ? `tadori://roadmaps/${slug}` : undefined },
+            data: { url: slug ? `${APP_SCHEME}://roadmaps/${slug}` : undefined },
           },
           trigger: {
             type: Notifications.SchedulableTriggerInputTypes.WEEKLY,

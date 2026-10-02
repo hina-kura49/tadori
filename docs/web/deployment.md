@@ -19,7 +19,7 @@ API は今までどおり Render（https://tadori.onrender.com）を使う。
 ブラウザからは、API も同じドメインにあるように見える。そのためログイン Cookie が「他サイトの Cookie（サードパーティ Cookie）」扱いにならず、`SameSite=None` などを設定しなくても Cookie でログインを保てる。
 中継は React Router のルートなので、開発中（`pnpm web`）も同じコードが動く。開発中は `API_ORIGIN` を省略すると `http://localhost:4000` に繋ぐ。
 
-`/r/:slug` のサーバー側の取得は5秒で打ち切る（`src/lib/roadmap/share.server.ts`）。Render が休止明けで間に合わないときは、画面の骨組みだけを返してブラウザで取り直す。そのときのリンクプレビューはタイトルが「Tadori」だけになる。
+`/r/:slug` のサーバー側の取得は5秒で打ち切る（`src/lib/roadmap/share.server.ts`）。Render が休止明けで間に合わないときは、画面の骨組みだけを返してブラウザで取り直す。そのときのリンクプレビューはタイトルが「Readtree」だけになる。
 
 ## 初回の設定
 

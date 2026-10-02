@@ -384,7 +384,7 @@ export function Screen({
             <ArrowLeft color={c.ink} size={20} />
           </IconButton>
           <Txt style={{ fontSize: 12, fontWeight: "600", letterSpacing: 1 }}>
-            {title ?? "TADORI"}
+            {title ?? "READTREE"}
           </Txt>
         </Row>
       )}

@@ -53,7 +53,7 @@ APIキーはRenderのAccount Settings → API Keysで発行する。このファ
 | `BETTER_AUTH_SECRET` | 本番専用に生成する十分長いランダム値 |
 | `BETTER_AUTH_URL` | 任意。Renderでは自動設定された `RENDER_EXTERNAL_URL` を使用。独自ドメインなら指定 |
 | `AUTH_EMAIL_PASSWORD_ENABLED` | 現在のログイン画面と登録済みアカウントを利用する間は `true` |
-| `APP_SCHEME` | `tadori` |
+| `APP_SCHEME` | `readtree`（2026-10 に `tadori` から変更。Render の値も合わせる） |
 | `CORS_ORIGIN` | Web版を使う場合に、その公開originだけをカンマ区切りで指定。nativeだけなら空 |
 | `LOG_LEVEL` | `info` |
 

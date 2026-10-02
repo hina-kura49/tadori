@@ -7,7 +7,7 @@ import "./index.css";
 export const links: Route.LinksFunction = () => [{ rel: "icon", type: "image/png", href: "/icon.png" }];
 
 // 画面ごとの meta が無いときの既定。子の画面が meta を返すと、そちらに置き換わる
-export const meta: Route.MetaFunction = () => [{ title: "Tadori" }];
+export const meta: Route.MetaFunction = () => [{ title: "Readtree" }];
 
 /** すべての画面に共通の HTML の骨組み (サーバーでもブラウザでも使う) */
 export function Layout({ children }: { children: React.ReactNode }) {
@@ -47,7 +47,7 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
     : "予期しないエラーが起きました。時間をおいて再読み込みしてください。";
   return (
     <main className="mx-auto max-w-3xl px-4 py-16 text-center">
-      <p className="font-serif text-2xl">Tadori</p>
+      <p className="font-serif text-2xl">Readtree</p>
       <p className="mt-4 text-sm text-muted">{message}</p>
     </main>
   );

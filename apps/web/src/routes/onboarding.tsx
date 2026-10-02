@@ -49,7 +49,7 @@ export default function Onboarding() {
     <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col gap-10 px-4 py-10">
       <p className="inline-flex items-center gap-2 font-serif text-3xl">
         <Route className="text-accent" size={24} />
-        tadori
+        readtree
       </p>
       {stage === "welcome" ? (
         <section className="flex flex-1 flex-col justify-center gap-8 text-center">
@@ -118,12 +118,12 @@ export default function Onboarding() {
                 required
                 autoCapitalize="none"
                 autoComplete="username"
-                placeholder="tadori_learner"
+                placeholder="readtree_learner"
                 value={username}
                 onChange={(e) => setUsername(e.target.value.toLowerCase())}
                 error={usernameError}
               />
-              {username && !usernameError && <p className="text-xs text-muted">tadori/profile/{username}</p>}
+              {username && !usernameError && <p className="text-xs text-muted">readtree/profile/{username}</p>}
               {saveError && (
                 <p className="text-sm text-error" role="alert">
                   {saveError}

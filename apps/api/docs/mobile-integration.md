@@ -149,11 +149,11 @@ V1 は A で始め、Explore だけ B (pagination) にするのが現実的で�
 
 | API の `data.type` | `data.url` | `api-contract.md` での名前 |
 | --- | --- | --- |
-| `CIRCLE_MEETING_REMINDER` | `tadori://circles/:id` | `circle_meeting` |
-| `CIRCLE_JOIN` | `tadori://circles/:id` | `member_joined` |
-| `CIRCLE_INVITE` | `tadori://circles/:id` | `circle_invited` |
-| `ROADMAP_COMPLETED` | `tadori://roadmaps/:slug` | `roadmap_completed` |
-| `NEXT_STEP_AVAILABLE` | `tadori://roadmaps/:slug` | `next_book` |
+| `CIRCLE_MEETING_REMINDER` | `readtree://circles/:id` | `circle_meeting` |
+| `CIRCLE_JOIN` | `readtree://circles/:id` | `member_joined` |
+| `CIRCLE_INVITE` | `readtree://circles/:id` | `circle_invited` |
+| `ROADMAP_COMPLETED` | `readtree://roadmaps/:slug` | `roadmap_completed` |
+| `NEXT_STEP_AVAILABLE` | `readtree://roadmaps/:slug` | `next_book` |
 | (未実装) | | `circle_start` (Circle の開始日の通知) |
 
 アプリは `type` を参照していないので名前の違いは実害なし。`type` で分岐するようになったら API 側の名前 (大文字) に合わせてください。
