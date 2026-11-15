@@ -23,7 +23,7 @@ API は今までどおり Render（https://tadori.onrender.com）を使う。
 
 ## 初回の設定
 
-1. Vercel のダッシュボード → Add New → Project で、GitHub の `h-kurashina/tadori` を選ぶ。
+1. Vercel のダッシュボード → Add New → Project で、GitHub の `hina-kura49/tadori` を選ぶ。
 2. **Root Directory を `apps/web` にする。** それ以外のビルド設定は `apps/web/vercel.json` に書いてあるので、画面で変える必要はない。
    - Vercel はリポジトリのルートにある `pnpm-lock.yaml` を見て、pnpm を使う。
    - `--filter @tadori/web...` は「Web版と、Web版が使うパッケージ（`@tadori/api` の型）だけを入れる」という指定。Expo などの重い依存を入れずに済む。
